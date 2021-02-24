@@ -4,7 +4,7 @@ Movie Match app backend in construction!
 
 ## Team
 
-- Mentor: [Piotr Bartkowicz](https://github.com/Cidebur)
+- Mentor: [Piotr Bartkowicz](https://github.com/BartkowiczPiotr)
 
 - [Michał Ciborowski](https://github.com/Cidebur)
 - [Anna Pastor](https://github.com/anpastor)

@@ -9,6 +9,10 @@ class UserController extends Controller {
     login() {
         
     }
+
+    register() {
+        
+    }
 }
 
 module.exports = UserController;

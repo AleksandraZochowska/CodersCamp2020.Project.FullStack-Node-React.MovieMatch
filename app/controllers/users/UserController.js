@@ -1,5 +1,5 @@
 const Controller = require("../Controller");
-const User = require("../../models/users/User")
+const User = require("../../models/users/UserModel")
 
 class UserController extends Controller {
     constructor() {
@@ -12,7 +12,7 @@ class UserController extends Controller {
     }
 
     register(req, res, next) {
-        
+   
     }
 }
 

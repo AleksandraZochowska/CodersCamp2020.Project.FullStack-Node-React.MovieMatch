@@ -15,11 +15,7 @@ class Server {
     }
 
     connectToDB() {
-        // mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
-        mongoose.connect(`mongodb+srv://admin:MongoDaBest!@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
-        //
-        console.log(process.env.DB_USER);
-        console.log(process.env.DB_PASSWD);
+        mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
     }
 
     useMiddlewares() {

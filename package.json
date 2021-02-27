@@ -31,6 +31,7 @@
     "express-fileupload": "^1.1.6-alpha.6",
     "helmet": "^3.21.2",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^3.5.3"
+    "mongodb": "^3.5.3",
+    "mongoose": "^5.11.18"
   }
 }

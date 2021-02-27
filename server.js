@@ -1,15 +1,25 @@
 const dotenv = require("dotenv");
 const routes = require("./app/routes");
+const mongoose = require("mongoose");
 
-dotenv.config({ path: "./env"});
+const result = dotenv.config({ path: "./.env"});
 
 class Server {
     constructor(express) {
         this.app = express;
         this.serverPort = process.env.SERVER_PORT || 4000;
+        this.connectToDB();
         this.useMiddlewares();
         this.getRoutes();
         this.start();
+    }
+
+    connectToDB() {
+        // mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
+        mongoose.connect(`mongodb+srv://admin:MongoDaBest!@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
+        //
+        console.log(process.env.DB_USER);
+        console.log(process.env.DB_PASSWD);
     }
 
     useMiddlewares() {

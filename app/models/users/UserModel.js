@@ -10,34 +10,47 @@ class UserModel {
     //wyszukiwanie w bazie po id, emailu, itd.
     //updateowanie usera
     constructor() {
-        this.model = mongoose.model('User', userSchema);
+        this.User = mongoose.model('User', userSchema);
     }
 
     addUser(name, email, password, displayedName) {
+
         const creationDate = new Date();       
         const userId = new mongoose.Types.ObjectId();
 
-        const user = new this.model({
+        hashModel.addHash(userId, password, creationDate);
+        const user = new this.User({
             _id: userId,
             email: email,
             name: name,
-            displayedName: displayedName,
+            displayedName: displayedName + generatePseudoId(),
             friends: [],
             createdAt: creationDate,
             updatedAt: creationDate,
             lastActivity: creationDate
         });
         user.save();
-        hashModel.addHash(userId, password);
+
+        return userId;
     }
 
     findByEmail(email) {
-        this.model.find({email: email})
-        .exec()
-        .then(user => {
-            return user;
-        })
-        .catch(err => console.log(err))
+
+        return new Promise((resolve, reject) => {
+
+            //connect
+            this.User.find({email: email})
+                .exec()
+                .then(user => {
+                    //zamknąć poł. z bazą
+                    resolve(user);
+                })
+                .catch(err => reject(
+                    //czy też trzeba zamknąć poł z bazą?
+                    console.log(err)
+                    
+                ));
+        });
     }
 }
 
@@ -76,4 +89,12 @@ const userSchema = mongoose.Schema({
         type: Date
     }
 })
+
+
+const pseudoIdLength = 6;
+
+function generatePseudoId() {
+    return "#" + Math.floor(Math.random() * (10 ** pseudoIdLength - 1)).toString().padStart(pseudoIdLength,"0");
+}
+
 module.exports = UserModel;

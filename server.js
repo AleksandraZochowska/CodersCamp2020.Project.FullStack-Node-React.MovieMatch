@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 const routes = require("./app/routes");
 const mongoose = require("mongoose");
+const express = require("express");
 
 const result = dotenv.config({ path: "./.env"});
 
@@ -15,11 +16,19 @@ class Server {
     }
 
     connectToDB() {
-        mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
+        if(process.env.DB_USER && process.env.DB_PASSWD) {
+            const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+            mongoose.connect(connectionString, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
+        } else {
+            throw new Error("DB_USER and/or DB_PASSWD not defined");
+        }
     }
 
     useMiddlewares() {
-        // app.use(zewnętrzny-middleware)
+        this.app.use(express.json());
     }
 
     getRoutes() {

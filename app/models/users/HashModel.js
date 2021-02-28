@@ -1,6 +1,5 @@
 const UserController = require("../../controllers/users/UserController");
 const mongoose = require("mongoose");
-const { connect } = require("../../routes/users");
 const bcrypt = require("bcrypt");
 
 
@@ -9,7 +8,7 @@ class HashModel {
         this.model = mongoose.model('Hash', hashSchema);
     }
 
-    addHash(userId, password) {
+    addHash(userId, password, date) {
         bcrypt.hash(password, 10, (err, hashedPw) => {
             if(err) {
                 throw new Error;
@@ -18,10 +17,10 @@ class HashModel {
                 _id: new mongoose.Types.ObjectId(),
                 userId: userId,
                 hash: hashedPw,
-                updatedAt: new Date()
+                updatedAt: date
             });
             hash.save();
-        })
+        });
     }
 }
 

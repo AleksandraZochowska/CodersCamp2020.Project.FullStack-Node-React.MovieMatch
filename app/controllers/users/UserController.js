@@ -43,6 +43,12 @@ class UserController extends Controller {
 
         this.body.email = this.body.email.trim().toLowerCase();
 
+        if(!this.body.name){
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                error: "Name not provided"
+            });
+        }
+
         let error;
         (this.body.password.length < this.PW_MIN_LENGTH) ? error = "short" : (this.body.password.length > this.PW_MAX_LENGTH) ? error = "long" : error = false;
         if(error) {

@@ -87,7 +87,6 @@ class UserModel extends Model {
             this.Hash.findOne({userId: user._id}, (err, hash) => {
                 this.disconnectFromDB();
                 if (err) reject(err);
-                console.log(hash.hash)
                 bcrypt.compare(`${password}`, hash.hash, (authError, result) => {
                     if (authError) reject(authError);
                     if (result) {

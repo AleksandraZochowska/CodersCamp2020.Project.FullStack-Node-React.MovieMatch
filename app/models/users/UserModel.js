@@ -17,45 +17,57 @@ class UserModel extends Model {
     
     addUser(name, email, password, displayedName) {
 
-        const creationDate = new Date();       
-        const userId = new mongoose.Types.ObjectId();
+        return new Promise(async (resolve, reject) => {
 
-        this.addHash(userId, password, creationDate);
-        const user = new this.User({
-            _id: userId,
-            email: email,
-            name: name,
-            displayedName: displayedName + this.generatePseudoId(),
-            friends: [],
-            createdAt: creationDate,
-            updatedAt: creationDate,
-            lastActivity: creationDate
+            await this.connectToDB();
+       
+            const userId = new mongoose.Types.ObjectId();
+            const creationDate = new Date();
+
+            this.addHash(userId, password, creationDate);
+            const user = new this.User({
+                _id: userId,
+                email: email,
+                name: name,
+                displayedName: displayedName + this.generatePseudoId(),
+                friends: [],
+                createdAt: creationDate,
+                updatedAt: creationDate,
+                lastActivity: creationDate
+            });
+            user.save()
+                .then(() => {
+                    this.disconnectFromDB();
+                    resolve(userId)
+                })
+                .catch((err) => {
+                    this.disconnectFromDB();
+                    reject(err)
+                });
         });
-        user.save();
-
-        return userId;
     }
 
     addHash(userId, password, date) {
-        bcrypt.hash(password, 10, (err, hashedPw) => {
+
+        bcrypt.hash(password, 10, (err, hash) => {
             if(err) {
                 throw new Error;
             }
-            const hash = new this.Hash({
+            const hashedEntry = new this.Hash({
                 _id: new mongoose.Types.ObjectId(),
                 userId: userId,
-                hash: hashedPw,
+                hash: hash,
                 updatedAt: date
             });
-            hash.save();
+            hashedEntry.save();
         });
     }
   
     findByEmail(email) {
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
 
-            this.connectToDB();
+            await this.connectToDB();
 
             this.User.findOne({email: email}, (err, user) => {
                 this.disconnectFromDB();

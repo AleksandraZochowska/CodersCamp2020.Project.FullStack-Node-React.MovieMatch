@@ -6,6 +6,9 @@ class UserController extends Controller {
     constructor(req, res) {
         super(req, res);
         this.users = new UserModel();
+
+        this.PW_MIN_LENGTH = 8;
+        this.PW_MAX_LENGTH = 32;
     }
 
     login() {
@@ -13,10 +16,19 @@ class UserController extends Controller {
     }
 
     async register() {
+
         const userData = {...this.req.body};
 
-        const sameMailUser = await this.users.findByEmail(userData.email);
-        if(sameMailUser.length > 0) {
+        let error;
+        (this.body.password.length < this.PW_MIN_LENGTH) ? error = "short" : (this.body.password.length > this.PW_MAX_LENGTH) ? error = "long" : error = false;
+        if(error) {
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                        error: "Password too " + error
+                    });
+        } 
+
+        const sameMailUsers = await this.users.findByEmail(this.body.email);
+        if(sameMailUsers.length > 0) {
             return this.res.status(StatusCodes.CONFLICT).json({
                 error: "User with this email already exists"
             });

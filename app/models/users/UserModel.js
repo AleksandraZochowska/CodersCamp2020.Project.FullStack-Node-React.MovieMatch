@@ -39,17 +39,18 @@ class UserModel {
         return new Promise((resolve, reject) => {
 
             //connect
-            this.User.find({email: email})
+            this.User
+                .find({email: email})
                 .exec()
                 .then(user => {
                     //zamknąć poł. z bazą
                     resolve(user);
                 })
-                .catch(err => reject(
+                .catch(err => {
+                    reject(err)
                     //czy też trzeba zamknąć poł z bazą?
                     console.log(err)
-                    
-                ));
+                });
         });
     }
 }

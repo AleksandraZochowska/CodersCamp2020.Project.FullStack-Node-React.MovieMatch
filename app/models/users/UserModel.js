@@ -1,10 +1,11 @@
-const UserController = require("../../controllers/users/UserController");
 const Model = require("../Model");
 const userSchema = require("./userSchema");
 const hashSchema = require("./hashSchema");
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const HashModel = require("./HashModel");
+const hashModel = new HashModel();
 
 class UserModel extends Model {
 
@@ -16,6 +17,27 @@ class UserModel extends Model {
         this.mongoDB = process.env.MONGO_DB;
     }
     
+    addUser(name, email, password, displayedName) {
+
+        const creationDate = new Date();       
+        const userId = new mongoose.Types.ObjectId();
+
+        hashModel.addHash(userId, password, creationDate);
+        const user = new this.User({
+            _id: userId,
+            email: email,
+            name: name,
+            displayedName: displayedName + this.generatePseudoId(),
+            friends: [],
+            createdAt: creationDate,
+            updatedAt: creationDate,
+            lastActivity: creationDate
+        });
+        user.save();
+
+        return userId;
+    }
+  
     findByEmail(email) {
 
         return new Promise((resolve, reject) => {
@@ -54,6 +76,12 @@ class UserModel extends Model {
 
         });
     }
+  
+    generatePseudoId() {
+      const pseudoIdLength = 6;
+      return "#" + Math.floor(Math.random() * (10 ** pseudoIdLength - 1)).toString().padStart(pseudoIdLength,"0");
+    }
+
 }
 
 module.exports = UserModel;

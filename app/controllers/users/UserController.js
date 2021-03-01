@@ -1,10 +1,15 @@
 const UserModel = require("../../models/users/UserModel");
 const Controller = require("../Controller");
 const Joi = require("@hapi/joi");
+const StatusCodes = require("http-status-codes").StatusCodes;
 
 class UserController extends Controller {
     constructor(req, res) {
         super(req, res);
+        this.users = new UserModel();
+        this.PW_MIN_LENGTH = 8;
+        this.PW_MAX_LENGTH = 32;
+
     }
 
     async login() {
@@ -31,6 +36,32 @@ class UserController extends Controller {
         return this.res.status(200).json({
             user: user,
             token: token
+        });
+    }
+
+    async register() {
+
+        const userData = {...this.req.body};
+
+        let error;
+        (this.body.password.length < this.PW_MIN_LENGTH) ? error = "short" : (this.body.password.length > this.PW_MAX_LENGTH) ? error = "long" : error = false;
+        if(error) {
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                        error: "Password too " + error
+                    });
+        } 
+
+        const sameMailUsers = await this.users.findByEmail(this.body.email);
+        if(sameMailUsers.length > 0) {
+            return this.res.status(StatusCodes.CONFLICT).json({
+                error: "User with this email already exists"
+            });
+        }
+
+        const userId = this.users.addUser(userData.name, userData.email, userData.password, userData.displayedName);
+        this.res.status(StatusCodes.CREATED).json({
+            status: "User created",
+            id: userId
         });
     }
 }

@@ -41,24 +41,33 @@ class UserController extends Controller {
 
     async register() {
 
-        const userData = {...this.req.body};
+        this.body.email = this.body.email.trim().toLowerCase();
 
         let error;
         (this.body.password.length < this.PW_MIN_LENGTH) ? error = "short" : (this.body.password.length > this.PW_MAX_LENGTH) ? error = "long" : error = false;
         if(error) {
             return this.res.status(StatusCodes.BAD_REQUEST).json({
-                        error: "Password too " + error
-                    });
+                error: "Password too " + error
+            });
         } 
 
         const sameMailUsers = await this.users.findByEmail(this.body.email);
-        if(sameMailUsers.length > 0) {
+        if(sameMailUsers) {
             return this.res.status(StatusCodes.CONFLICT).json({
                 error: "User with this email already exists"
             });
         }
 
-        const userId = this.users.addUser(userData.name, userData.email, userData.password, userData.displayedName);
+        let userId;
+
+        try {
+            userId = await this.users.addUser(this.body.name, this.body.email, this.body.password, this.body.displayedName);
+        } catch(error) {
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                error: error
+            });
+        }
+
         this.res.status(StatusCodes.CREATED).json({
             status: "User created",
             id: userId

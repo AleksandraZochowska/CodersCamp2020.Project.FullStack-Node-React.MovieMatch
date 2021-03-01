@@ -1,11 +1,13 @@
+const express = require("express");
 const dotenv = require("dotenv");
 const routes = require("./app/routes");
 
-dotenv.config({ path: "./env"});
+dotenv.config({ path: "./.env"});
 
 class Server {
-    constructor(express) {
-        this.app = express;
+    
+    constructor() {
+        this.app = express();
         this.serverPort = process.env.SERVER_PORT || 4000;
         this.useMiddlewares();
         this.getRoutes();
@@ -13,7 +15,7 @@ class Server {
     }
 
     useMiddlewares() {
-        // app.use(zewnętrzny-middleware)
+        this.app.use(express.json());
     }
 
     getRoutes() {

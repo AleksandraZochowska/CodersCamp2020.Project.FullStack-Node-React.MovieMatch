@@ -1,4 +1,3 @@
-const express = require("express");
 const dotenv = require("dotenv");
 const routes = require("./app/routes");
 const mongoose = require("mongoose");

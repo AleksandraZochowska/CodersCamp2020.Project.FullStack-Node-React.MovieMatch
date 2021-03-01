@@ -4,8 +4,6 @@ const hashSchema = require("./hashSchema");
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const HashModel = require("./HashModel");
-const hashModel = new HashModel();
 
 class UserModel extends Model {
 
@@ -22,7 +20,7 @@ class UserModel extends Model {
         const creationDate = new Date();       
         const userId = new mongoose.Types.ObjectId();
 
-        hashModel.addHash(userId, password, creationDate);
+        this.addHash(userId, password, creationDate);
         const user = new this.User({
             _id: userId,
             email: email,
@@ -36,6 +34,21 @@ class UserModel extends Model {
         user.save();
 
         return userId;
+    }
+
+    addHash(userId, password, date) {
+        bcrypt.hash(password, 10, (err, hashedPw) => {
+            if(err) {
+                throw new Error;
+            }
+            const hash = new this.Hash({
+                _id: new mongoose.Types.ObjectId(),
+                userId: userId,
+                hash: hashedPw,
+                updatedAt: date
+            });
+            hash.save();
+        });
     }
   
     findByEmail(email) {

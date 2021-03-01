@@ -41,13 +41,31 @@ class UserController extends Controller {
 
     async register() {
 
-        this.body.email = this.body.email.trim().toLowerCase();
-
         if(!this.body.name){
             return this.res.status(StatusCodes.BAD_REQUEST).json({
                 error: "Name not provided"
             });
         }
+
+        if(!this.body.mail){
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                error: "Email adress not provided"
+            });
+        }
+
+        if(!this.body.password){
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                error: "Password not provided"
+            });
+        }
+
+        if(!this.body.displayedName){
+            return this.res.status(StatusCodes.BAD_REQUEST).json({
+                error: "Displayed Name not provided"
+            });
+        }
+
+        this.body.email = this.body.email.trim().toLowerCase();
 
         let error;
         (this.body.password.length < this.PW_MIN_LENGTH) ? error = "short" : (this.body.password.length > this.PW_MAX_LENGTH) ? error = "long" : error = false;

@@ -1,13 +1,15 @@
+const express = require("express");
 const dotenv = require("dotenv");
 const routes = require("./app/routes");
 const mongoose = require("mongoose");
 const express = require("express");
 
-const result = dotenv.config({ path: "./.env"});
+dotenv.config({ path: "./.env"});
 
 class Server {
-    constructor(express) {
-        this.app = express;
+    
+    constructor() {
+        this.app = express();
         this.serverPort = process.env.SERVER_PORT || 4000;
         this.connectToDB();
         this.useMiddlewares();

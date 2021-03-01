@@ -1,18 +1,22 @@
-const UserController = require("../../controllers/users/UserController");
-const mongoose = require("mongoose");
+const Model = require("../Model");
+const userSchema = require("./userSchema");
+const hashSchema = require("./hashSchema");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const HashModel = require("./HashModel");
 const hashModel = new HashModel();
 
-class UserModel {
-    //get user po konkretnym id z database
-    //get users po zadanych warunkach z database
-    //autoryzacja
-    //wyszukiwanie w bazie po id, emailu, itd.
-    //updateowanie usera
-    constructor() {
-        this.User = mongoose.model('User', userSchema);
-    }
+class UserModel extends Model {
 
+    constructor() {
+        super()
+        this.User = mongoose.model("User", userSchema);
+        this.Hash = mongoose.model("Hash", hashSchema);
+        this.mongoURL = process.env.MONGO_URL;
+        this.mongoDB = process.env.MONGO_DB;
+    }
+    
     addUser(name, email, password, displayedName) {
 
         const creationDate = new Date();       
@@ -23,7 +27,7 @@ class UserModel {
             _id: userId,
             email: email,
             name: name,
-            displayedName: displayedName + generatePseudoId(),
+            displayedName: displayedName + this.generatePseudoId(),
             friends: [],
             createdAt: creationDate,
             updatedAt: creationDate,
@@ -33,69 +37,51 @@ class UserModel {
 
         return userId;
     }
-
+  
     findByEmail(email) {
 
         return new Promise((resolve, reject) => {
 
-            //connect
-            this.User
-                .find({email: email})
-                .exec()
-                .then(user => {
-                    //zamknąć poł. z bazą
-                    resolve(user);
-                })
-                .catch(err => {
-                    reject(err)
-                    //czy też trzeba zamknąć poł z bazą?
-                    console.log(err)
-                });
+            this.connectToDB();
+
+            this.User.findOne({email: email}, (err, user) => {
+                this.disconnectFromDB();
+                if (err) reject(err);
+                resolve(user);
+            });
+
         });
     }
-}
 
-const userSchema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    email: { 
-        type: String, 
-        require: true,
-        lowercase: true,
-        trim: true,
-        unique: true,
-        match: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    },
-    name: {
-        type: String,
-        maxlength: 24,
-        trim: true
-    },
-    displayedName: {
-        type: String,
-        maxlength: 16,
-        trim: true
-    },
-    friends: [{
-        _id: mongoose.Schema.Types.ObjectId,
-        name: String,
-        displayedName: String
-    }],
-    createdAt: {
-        type: Date
-    },
-    updatedAt: {
-        type: Date
-    },
-    lastActivity: {
-        type: Date
+    authorize(user, password) {
+
+        return new Promise(async (resolve, reject) => {
+
+            await this.connectToDB();
+
+            this.Hash.findOne({userId: user._id}, (err, hash) => {
+                this.disconnectFromDB();
+                if (err) reject(err);
+                console.log(hash.hash)
+                bcrypt.compare(`${password}`, hash.hash, (authError, result) => {
+                    if (authError) reject(authError);
+                    if (result) {
+                        const token = jwt.sign({userId: user._id}, `${process.env.SECRET_TOKEN}`, { expiresIn: "1h" });
+                        resolve(token);
+                    }
+                    resolve(false);
+                });
+
+            });
+
+        });
     }
-})
+  
+    generatePseudoId() {
+      const pseudoIdLength = 6;
+      return "#" + Math.floor(Math.random() * (10 ** pseudoIdLength - 1)).toString().padStart(pseudoIdLength,"0");
+    }
 
-
-const pseudoIdLength = 6;
-
-function generatePseudoId() {
-    return "#" + Math.floor(Math.random() * (10 ** pseudoIdLength - 1)).toString().padStart(pseudoIdLength,"0");
 }
 
 module.exports = UserModel;

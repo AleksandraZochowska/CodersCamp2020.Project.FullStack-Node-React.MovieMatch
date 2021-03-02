@@ -22,45 +22,52 @@ class UserModel extends Model {
             await this.connectToDB();
        
             const userId = new mongoose.Types.ObjectId();
-            const creationDate = new Date();
 
-            this.addHash(userId, password, creationDate);
             const user = new this.User({
                 _id: userId,
                 email: email,
                 name: name,
                 displayedName: displayedName + this.generatePseudoId(),
                 friends: [],
-                createdAt: creationDate,
-                updatedAt: creationDate,
-                lastActivity: creationDate
+                lastActivity: new Date()
             });
             user.save()
                 .then(() => {
-                    this.disconnectFromDB();
-                    resolve(userId)
+                    this.addHash(userId, password)
+                        .then(() => {
+                            this.disconnectFromDB();
+                            resolve(userId);
+                        })
+                        .catch((err) => {
+                            this.disconnectFromDB();
+                            reject(err);
+                        });
                 })
                 .catch((err) => {
                     this.disconnectFromDB();
-                    reject(err)
+                    reject(err);
                 });
         });
     }
 
-    addHash(userId, password, date) {
+    addHash(userId, password) {
 
-        bcrypt.hash(password, 10, (err, hash) => {
-            if(err) {
-                throw new Error;
-            }
-            const hashedEntry = new this.Hash({
-                _id: new mongoose.Types.ObjectId(),
-                userId: userId,
-                hash: hash,
-                updatedAt: date
+        return new Promise(async (resolve, reject) => {
+
+            bcrypt.hash(password, 10, (err, hash) => {
+                if(err) {
+                    reject(err);
+                }
+                const hashedEntry = new this.Hash({
+                    _id: new mongoose.Types.ObjectId(),
+                    userId: userId,
+                    hash: hash
+                });
+                hashedEntry.save()
+                    .then(resolve(userId))
+                    .catch(err => reject(err));
             });
-            hashedEntry.save();
-        });
+        })
     }
   
     findByEmail(email) {

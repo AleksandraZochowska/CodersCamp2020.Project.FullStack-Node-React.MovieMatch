@@ -47,7 +47,7 @@ class UserController extends Controller {
             });
         }
 
-        if(!this.body.mail){
+        if(!this.body.email){
             return this.res.status(StatusCodes.BAD_REQUEST).json({
                 error: "Email adress not provided"
             });

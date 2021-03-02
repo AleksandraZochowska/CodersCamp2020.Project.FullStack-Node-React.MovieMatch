@@ -22,7 +22,8 @@ const userSchema = mongoose.Schema({
     displayedName: {
         type: String,
         maxlength: 16,
-        trim: true
+        trim: true,
+        unique: true
     },
 
     friends: [{
@@ -31,17 +32,11 @@ const userSchema = mongoose.Schema({
         displayedName: String
     }],
 
-    createdAt: {
-        type: Date
-    },
-
-    updatedAt: {
-        type: Date
-    },
-
     lastActivity: {
         type: Date
     }
+}, {
+    timestamps: true
 });
 
 module.exports = userSchema;

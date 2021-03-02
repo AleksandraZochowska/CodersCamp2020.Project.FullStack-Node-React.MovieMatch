@@ -23,12 +23,8 @@ class Controller {
                 return "Unauthorized";
             case 404:
                 return "Not Found";
-            case 410:
-                return "Gone";
             case 500:
                 return "Internal Server Error";
-            case 502:
-                return "Bad Gateway";
             default:
                 return "Internal Server Error";
         }

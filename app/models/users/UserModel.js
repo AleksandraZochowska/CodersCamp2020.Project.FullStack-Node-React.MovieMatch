@@ -13,6 +13,7 @@ class UserModel extends Model {
         this.Hash = mongoose.model("Hash", hashSchema);
         this.mongoURL = process.env.MONGO_URL;
         this.mongoDB = process.env.MONGO_DB;
+        this.user;
     }
     
     addUser(name, email, password, displayedName) {
@@ -72,8 +73,42 @@ class UserModel extends Model {
             this.User.findOne({email: email}, (err, user) => {
                 this.disconnectFromDB();
                 if (err) reject(err);
+                this.user = user;
                 resolve(user);
             });
+
+        });
+    }
+
+    findByResetToken(token) {
+
+        return new Promise(async (resolve, reject) => {
+
+            await this.connectToDB();
+
+            this.User.findOne({resetToken: token}, (err, user) => {
+                this.disconnectFromDB();
+                if (err) reject(err);
+                resolve(user);
+            });
+
+        });
+    }
+
+
+    //sprawdzić, jak działa updateOne
+    addToken(token) {
+        
+        return new Promise(async (resolve, reject) => {
+
+            await this.connectToDB();
+
+            this.User.updateOne({ resetToken: token }, (err, result) => {
+                this.disconnectFromDB();
+                if (err) reject(err);
+                resolve(result);
+            });
+
 
         });
     }
@@ -90,7 +125,7 @@ class UserModel extends Model {
                 bcrypt.compare(`${password}`, hash.hash, (authError, result) => {
                     if (authError) reject(authError);
                     if (result) {
-                        const token = jwt.sign({userId: user._id}, `${process.env.SECRET_TOKEN}`, { expiresIn: "1h" });
+                        const token = jwt.sign({userId: user._id}, `${process.env.PRIVATE_KEY}`, { expiresIn: "1h" });
                         resolve(token);
                     }
                     resolve(false);

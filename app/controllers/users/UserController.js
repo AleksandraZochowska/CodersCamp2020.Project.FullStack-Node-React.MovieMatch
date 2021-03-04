@@ -1,7 +1,6 @@
 const UserModel = require("../../models/users/UserModel");
 const Controller = require("../Controller");
 const Joi = require("@hapi/joi");
-const StatusCodes = require("http-status-codes").StatusCodes;
 const jwt = require('jsonwebtoken');
 
 class UserController extends Controller {

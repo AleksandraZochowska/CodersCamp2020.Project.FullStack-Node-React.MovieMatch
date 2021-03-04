@@ -34,7 +34,7 @@ class UserController extends Controller {
         const token = await userModel.authorize(user, this.body.password);
         if(!token) return this.showError(401);
 
-        return this.res.status(200).json({
+        return this.success({
             user: user,
             token: token
         });
@@ -100,7 +100,7 @@ class UserController extends Controller {
         if(!updatedUser) return this.showError(500);
         
         // Return token:
-        return this.res.status(200).json({
+        return this.success({
             resetToken: token
         });
 
@@ -138,7 +138,7 @@ class UserController extends Controller {
             if(!tokenDeleted) return this.showError(500, "Token issue");
 
             // Send success message:
-            return this.res.status(200).json({
+            return this.success({
                 message: "Your password has been updated"
             });
         });

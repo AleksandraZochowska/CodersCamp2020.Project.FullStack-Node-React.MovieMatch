@@ -4,7 +4,11 @@ class Controller {
         this.req = req;
         this.res = res;
         this.body = req.body;
+    }
 
+    success(message) {
+
+        return this.res.status(200).json(message);
     }
 
     showError(code, message) {

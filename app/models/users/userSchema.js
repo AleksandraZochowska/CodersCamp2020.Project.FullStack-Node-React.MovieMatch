@@ -1,49 +1,43 @@
-const mongoose = require('mongoose');
+const { Schema } = require('mongoose');
 
-const userSchema = mongoose.Schema({
+const userSchema = new Schema(
+    
+    {
+        email: { 
+            type: String, 
+            require: true,
+            lowercase: true,
+            trim: true,
+            unique: true,
+            match: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        },
 
-    _id: mongoose.Schema.Types.ObjectId,
+        name: {
+            type: String,
+            maxlength: 24,
+            trim: true
+        },
 
-    email: { 
-        type: String, 
-        require: true,
-        lowercase: true,
-        trim: true,
-        unique: true,
-        match: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        displayedName: {
+            type: String,
+            maxlength: 16,
+            trim: true,
+            unique: true
+        },
+
+        friends: [{
+            _id: Schema.Types.ObjectId,
+            name: String,
+            displayedName: String
+        }],
+
+        lastActivity: {
+            type: Date
+        },
+
+        resetToken: String
     },
-
-    name: {
-        type: String,
-        maxlength: 24,
-        trim: true
-    },
-
-    displayedName: {
-        type: String,
-        maxlength: 16,
-        trim: true
-    },
-
-    friends: [{
-        _id: mongoose.Schema.Types.ObjectId,
-        name: String,
-        displayedName: String
-    }],
-
-    createdAt: {
-        type: Date
-    },
-
-    updatedAt: {
-        type: Date
-    },
-
-    lastActivity: {
-        type: Date
-    },
-
-    resetToken: String
-});
+    { timestamps: true }
+);
 
 module.exports = userSchema;

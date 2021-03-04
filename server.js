@@ -16,15 +16,21 @@ class Server {
         this.start();
     }
 
-    connectToDB() {
-        if(process.env.DB_USER && process.env.DB_PASSWD) {
-            const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-            mongoose.connect(connectionString, {
+    async connectToDB() {
+
+        if(!process.env.DB_USER || !process.env.DB_PASSWD) throw new Error("DB_USER and/or DB_PASSWD not defined");
+
+        const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+
+        try {
+            await mongoose.connect(connectionString, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true
             });
-        } else {
-            throw new Error("DB_USER and/or DB_PASSWD not defined");
+        } catch(error) {
+            console.log(error); //TODO: better error handle function
+            //try to connect again as when initial connection fails, mongoose will not attempt to reconnect
+            this.connectToDB(); 
         }
     }
 

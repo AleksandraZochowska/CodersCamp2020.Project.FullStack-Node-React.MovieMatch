@@ -1,12 +1,17 @@
-const mongoose = require('mongoose');
+const { Schema } = require('mongoose');
 
-const hashSchema = mongoose.Schema({
+const hashSchema = new Schema({
 
-    _id: mongoose.Schema.Types.ObjectId,
-    userId: mongoose.Schema.Types.ObjectId,
-    hash: String,
-    updatedAt: Date,
-
+    userId: {
+        type: Schema.Types.ObjectId,
+        required: true
+    },
+    hash: {
+        type: String,
+        required: true
+    }
+}, {
+    timestamps: true
 });
 
 module.exports = hashSchema;

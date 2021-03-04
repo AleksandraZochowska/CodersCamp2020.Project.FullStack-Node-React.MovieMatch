@@ -18,26 +18,29 @@ class UserController extends Controller {
         // Validation:
         const loginSchema = Joi.object({
             email: Joi.string().email().required(),
-            password: Joi.string().pattern(this.PW_REGEX).required()
+            password: Joi.string().required()
         });
 
         const { error } = loginSchema.validate(this.body);
         if(error) return this.showError(400, "Please, provide correct email & password");
 
-        // Searching the db:
         const userModel = new UserModel();
-        const user = await userModel.findByEmail(this.body.email);
+        
+        try {
+            // Searching the db:
+            const user = await userModel.findByEmail(this.body.email);
+            if(!user) return this.showError(401);
 
-        if(!user) return this.showError(401);
-
-        // Authorization:
-        const token = await userModel.authorize(user, this.body.password);
-        if(!token) return this.showError(401);
-
-        return this.success({
-            user: user,
-            token: token
-        });
+            // Authorization:
+            const token = await userModel.authorize(user, this.body.password);
+            if(!token) return this.showError(401);
+            return this.success({
+                user: user,
+                token: token
+            });
+        } catch(error) {
+            return this.showError(500, "Error");
+        }
     }
 
     async register() {
@@ -46,16 +49,23 @@ class UserController extends Controller {
         const registerSchema = Joi.object({
             email: Joi.string().email().required(),
             password: Joi.string().pattern(this.PW_REGEX).required(),
-            name: Joi.string().min(2).max(20),
-            displayedName: Joi.string().min(2).max(20)
+            name: Joi.string().min(2).max(20).required(),
+            displayedName: Joi.string().min(2).max(20).required()
         });
 
         const { error } = registerSchema.validate(this.body);
         if(error) return this.showError(400, error.details);
 
-        const sameMailUser = await this.users.findByEmail(this.body.email);
-        if(sameMailUser) return this.showError(400, "User with this email already exists");
+        try {
 
+            const sameMailUser = await this.users.findByEmail(this.body.email);
+            if(sameMailUser) return this.showError(400, "User with this email already exists");
+
+        } catch(error) {
+
+            return this.showError(500);
+        }
+        
         // Add user and hash:
         this.users.addUser(this.body.name, this.body.email, this.body.displayedName)
             .then(user => {
@@ -88,21 +98,27 @@ class UserController extends Controller {
         
         // Check if user with given email exists:
         const userModel = new UserModel();
-        const user = await userModel.findByEmail(this.body.email);
-        if(!user) return this.showError(400, "You never registered to MovieMatch");
-        
-        // Create reset token:
-        const token = jwt.sign({userId: user._id}, `${process.env.RESET_PASSWORD_KEY}`, { expiresIn: "5m" });
-        if(!token) return this.showError(500);
-        
-        // Add reset token to user:
-        const updatedUser = await userModel.addToken(token);
-        if(!updatedUser) return this.showError(500);
-        
-        // Return token:
-        return this.success({
-            resetToken: token
-        });
+        try {
+
+            const user = await userModel.findByEmail(this.body.email);
+            if(!user) return this.showError(400, "You never registered to MovieMatch");
+            
+            // Create reset token:
+            const token = jwt.sign({userId: user._id}, `${process.env.RESET_PASSWORD_KEY}`, { expiresIn: "5m" });
+            if(!token) return this.showError(500);
+            
+            // Add reset token to user:
+            const updatedUser = await userModel.addToken(token);
+            if(!updatedUser) return this.showError(500);
+            
+            // Return token:
+            return this.success({ resetToken: token });
+
+        } catch(error) {
+
+            return this.showError(500);
+
+        }
 
     }
 
@@ -110,7 +126,7 @@ class UserController extends Controller {
         
         // Validate reqest body:
         const resetPasswordSchema = Joi.object({
-            newPassword: Joi.string().required(),
+            newPassword: Joi.string().pattern(this.PW_REGEX).required(),
             repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
         });
 
@@ -125,22 +141,29 @@ class UserController extends Controller {
 
             // Check if user with sent resetToken exists:
             const userModel = new UserModel();
-            const user = await userModel.findByResetToken(resetToken);
-    
-            if(!user) return this.showError(401, "No user with given token");
-            
-            // Update user's password:
-            const pwUpdated = await userModel.changeHash(user, this.body.newPassword);
-            if(!pwUpdated) return this.showError(500, "Password could not have been updated");
-            
-            // Delete resetToken:
-            const tokenDeleted = await userModel.deleteResetToken(user);
-            if(!tokenDeleted) return this.showError(500, "Token issue");
 
-            // Send success message:
-            return this.success({
-                message: "Your password has been updated"
-            });
+            try {
+                
+                const user = await userModel.findByResetToken(resetToken);
+        
+                if(!user) return this.showError(401, "Invalid token");
+                
+                // Update user's password:
+                const pwUpdated = await userModel.changeHash(user, this.body.newPassword);
+                if(!pwUpdated) return this.showError(500, "Password could not have been updated");
+                
+                // Delete resetToken:
+                const tokenDeleted = await userModel.deleteResetToken(user);
+                if(!tokenDeleted) return this.showError(500, "Token issue"); //do zmiany na maila do admina
+                
+                // Send success message:
+                return this.success({ message: "Your password has been updated" });
+
+            } catch(error) {
+
+                return this.showError(500);
+
+            }
         });
     }
 }

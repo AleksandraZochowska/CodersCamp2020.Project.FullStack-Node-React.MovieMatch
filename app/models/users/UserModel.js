@@ -19,7 +19,7 @@ class UserModel extends Model {
     
     addUser(name, email, displayedName) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             const user = new this.User({
                 email: email,
@@ -40,7 +40,7 @@ class UserModel extends Model {
 
     addHash(userId, password) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             bcrypt.hash(password, 10, (err, hash) => {
                 if(err) reject(err);
@@ -58,7 +58,7 @@ class UserModel extends Model {
 
     findById(id) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.User.findById(id, (err, user) => {
                 if(err) reject(err);
@@ -69,7 +69,7 @@ class UserModel extends Model {
   
     findByEmail(email) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.User.findOne({email: email}, (err, user) => {
                 if (err) reject(err);
@@ -82,7 +82,7 @@ class UserModel extends Model {
 
     findByResetToken(token) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.User.findOne({"resetToken": `${token}`}, (err, user) => {
                 if (err) reject(err);
@@ -93,7 +93,7 @@ class UserModel extends Model {
 
     removeById(id) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.User.findByIdAndDelete(id, (err, user) => {
                 if (err) reject(err);
@@ -104,7 +104,7 @@ class UserModel extends Model {
 
     addToken(token) {
         
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.user.resetToken = token;
             this.user.save((err, savedDoc) => {
@@ -116,7 +116,7 @@ class UserModel extends Model {
 
     changeHash(user, newPassword) {
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.Hash.findOne({userId: user._id}, (err, hash) => {
                 if (err || !hash) reject(err);
@@ -136,7 +136,7 @@ class UserModel extends Model {
 
     deleteResetToken(user) {
         
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             
             this.User.findOne({_id: user._id}, (err, user) => {
                 if (err || !user) reject(err);
@@ -151,18 +151,17 @@ class UserModel extends Model {
     }
 
     authorize(user, password) {
-
-        return new Promise(async (resolve, reject) => {
-
+        
+        return new Promise((resolve, reject) => {
+            
             this.Hash.findOne({userId: user._id}, (err, hash) => {
                 if (err) reject(err);
-
+                
                 bcrypt.compare(`${password}`, hash.hash, (authError, result) => {
-                    if (authError || !result) reject(authError);
-
+                    if(authError) reject(authError);
+                    if(!result) resolve(false);
                     const token = jwt.sign({userId: user._id}, `${process.env.PRIVATE_KEY}`, { expiresIn: "1h" });
                     if(token) resolve(token);
-                    resolve(false);
                 });
             });
         });

@@ -21,7 +21,7 @@ class UserController extends Controller {
         });
 
         const { error } = loginSchema.validate(this.body);
-        if(error) return this.showError(400, error.details);
+        if(error) return this.showError(400, "Please, provide correct email & password");
 
         // Searching the db
         const userModel = new UserModel();

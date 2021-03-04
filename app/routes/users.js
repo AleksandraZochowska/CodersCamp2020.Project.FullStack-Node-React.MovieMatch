@@ -6,7 +6,9 @@ router.post("/login", usersController.login);
 router.post("/register", usersController.register);
 
 // PUT:
-router.put("/forgot-password", usersController.forgotPassword);
-router.put("/reset-password", usersController.resetPassword);
+router.post("/forgotpassword", usersController.forgotPassword);
+
+//PATCH:
+router.patch("/resetpassword", usersController.resetPassword);
 
 module.exports = router;

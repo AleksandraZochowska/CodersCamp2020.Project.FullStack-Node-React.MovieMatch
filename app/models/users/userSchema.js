@@ -41,7 +41,9 @@ const userSchema = mongoose.Schema({
 
     lastActivity: {
         type: Date
-    }
+    },
+
+    resetToken: String
 });
 
 module.exports = userSchema;

@@ -6,4 +6,6 @@ module.exports.register =  (req, res) => { new UserController(req, res).register
 
 // PUT:
 module.exports.forgotPassword = (req, res) => { new UserController(req, res).forgotPassword() };
+
+//PATCH:
 module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };

@@ -71,7 +71,7 @@ class UserModel extends Model {
             await this.connectToDB();
 
             this.User.findOne({email: email}, (err, user) => {
-                this.disconnectFromDB();
+                // this.disconnectFromDB();
                 if (err) reject(err);
                 this.user = user;
                 resolve(user);
@@ -86,7 +86,7 @@ class UserModel extends Model {
 
             await this.connectToDB();
 
-            this.User.findOne({resetToken: token}, (err, user) => {
+            this.User.findOne({"resetToken": `${token}`}, (err, user) => {
                 this.disconnectFromDB();
                 if (err) reject(err);
                 resolve(user);
@@ -95,18 +95,60 @@ class UserModel extends Model {
         });
     }
 
-
-    //sprawdzić, jak działa updateOne
     addToken(token) {
         
         return new Promise(async (resolve, reject) => {
 
+            // await this.connectToDB();
+            this.user.resetToken = token;
+            this.user.save((err, savedDoc) => {
+                if(err) reject(err);
+                // this.disconnectFromDB();
+                resolve(savedDoc);
+            });
+
+        });
+    }
+
+    changeHash(user, newPassword) {
+
+        return new Promise(async (resolve, reject) => {
+
             await this.connectToDB();
 
-            this.User.updateOne({ resetToken: token }, (err, result) => {
-                this.disconnectFromDB();
-                if (err) reject(err);
-                resolve(result);
+            this.Hash.findOne({userId: user._id}, (err, hash) => {
+                if (err || !hash) reject(err);
+                
+                bcrypt.hash(newPassword, 10, (err, newHash) => {
+                    if (err || !newHash) reject(err);
+                    
+                    hash.hash = newHash;
+                    hash.save((err, savedDoc) => {
+                        if(err) reject(err);
+                        // this.disconnectFromDB();
+                        resolve(savedDoc);
+                    });
+                });
+            });
+        });
+    }
+
+    deleteResetToken(user) {
+        
+        return new Promise(async (resolve, reject) => {
+            
+            await this.connectToDB();
+
+            this.User.findOne({_id: user._id}, (err, user) => {
+                if (err || !user) reject(err);
+                
+                user.resetToken = "";
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    // this.disconnectFromDB();
+                    resolve(savedDoc);
+                });
+                
             });
 
 

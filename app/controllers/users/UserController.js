@@ -48,7 +48,7 @@ class UserController extends Controller {
             });
         }
 
-        if(!this.body.mail){
+        if(!this.body.email){
             return this.res.status(StatusCodes.BAD_REQUEST).json({
                 error: "Email adress not provided"
             });
@@ -101,43 +101,33 @@ class UserController extends Controller {
 
     async forgotPassword() {
 
-        // Validate reqest body
+        // Validate reqest body:
+
         const forgotPasswordSchema = Joi.object({
             email: Joi.string().email().required(),
         });
-
         const { error } = forgotPasswordSchema.validate(this.body);
-        if(error) return this.showError(400, error.details);
+        if(error) return this.showError(400, "To create new password, you need to provide valid email");
         
-        // Check if user with given email exists
+        // Check if user with given email exists:
+
         const userModel = new UserModel();
         const user = await userModel.findByEmail(this.body.email);
-        if(!user) return this.showError(400);
+        if(!user) return this.showError(400, "You never registered to MovieMatch");
         
-        // create token & data to be send via email:
-        const token = jwt.sign({userId: user._id}, `${process.env.RESET_PASSWORD_KEY}`, { expiresIn: "20m" });
+        // Create reset token:
+        const token = jwt.sign({userId: user._id}, `${process.env.RESET_PASSWORD_KEY}`, { expiresIn: "5m" });
         if(!token) return this.showError(500);
         
-        const data = {
-            from: process.env.DOMAIN_EMAIL,
-            to: this.body.email,
-            subject: "Movie Match | Forgot Password - Reset Link",
-            html: `
-            <h1>To reset password, copy the link below into the browser</h1>
-            <p>${process.env.CLIENT_URL}/resetpassword/${token}</p>
-            `
-        }
+        // Add reset token to user:
         
-        // add reset token to user:
+        const updatedUser = await userModel.addToken(token);
+        if(!updatedUser) return this.showError(500);
         
-        const update = await userModel.addToken(token);
-        if(!update) return this.showError(401);
+        // Return token:
         
-        // send message to user: wydzielić osobny kontroler do wysyłania maili
-        
-        mg.messages().send(data, (error, result) => {
-            if(error || !result) return this.showError(401);
-            return this.res.status(200).json("message": "Resetting email has been sent to you.")
+        return this.res.status(200).json({
+            resetToken: token
         });
 
     }
@@ -145,32 +135,39 @@ class UserController extends Controller {
     resetPassword() {
         
         // Validate reqest body:
+
         const resetPasswordSchema = Joi.object({
             newPassword: Joi.string().required(),
             repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
         });
-
         const { error } = resetPasswordSchema.validate(this.body);
-        if(error) return this.showError(400, error.details);
+        if(error) return this.showError(400, "Provide valid new password");
 
         // Verify the token:
-        
-        jwt.verify(this.req.params.resetPasswordToken, process.env.RESET_PASSWORD_KEY, (err, decodedToken) => {
+
+        const resetToken = this.req.headers.resettoken;
+        jwt.verify(resetToken, process.env.RESET_PASSWORD_KEY, async (err, decodedToken) => {
             
             if(err || !decodedToken) return this.showError(401, "Wrong or expired token");
 
             // Check if user with sent resetToken exists:
         
             const userModel = new UserModel();
-            const user = await userModel.findByResetToken(decodedToken);
+            const user = await userModel.findByResetToken(resetToken);
     
-            if(!user) return this.showError(400);
-
-            // Here token is valid & there is a user which it belongs to. We can update users password:
+            if(!user) return this.showError(401, "No user with given token");
             
-            // usunąć klucz z tokenem z usera
+            // Update user's password:
+            
+            const pwUpdated = await userModel.changeHash(user, this.body.newPassword);
+            if(!pwUpdated) return this.showError(500, "Password could not have been updated");
+            
+            // Delete resetToken:
+            
+            const tokenDeleted = await userModel.deleteResetToken(user);
+            if(!tokenDeleted) return this.showError(500, "Token issue");
 
-            //...
+            // Send success message:
 
             return this.res.status(200).json({
                 message: "Your password has been updated"

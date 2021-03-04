@@ -9,14 +9,12 @@ class Controller {
 
     showError(code, message) {
 
-        return this.res.status(code).json({ "Error Message": message ? message : this.errorMessage(code) });
+        return this.res.status(code).json({ error: message ? message : this.errorMessage(code) });
     }
 
     errorMessage(code) {
 
         switch(code) {
-            case 301:
-                return "Moved Permanently";
             case 400:
                 return "Bad Request";
             case 401:

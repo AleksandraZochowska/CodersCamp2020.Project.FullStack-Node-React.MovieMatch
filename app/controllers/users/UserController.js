@@ -9,7 +9,7 @@ class UserController extends Controller {
         this.users = new UserModel();
         this.PW_MIN_LENGTH = 8;
         this.PW_MAX_LENGTH = 32;
-
+        this.PW_REGEX = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,20})");
     }
 
     async login() {
@@ -17,11 +17,11 @@ class UserController extends Controller {
         // Validation
         const loginSchema = Joi.object({
             email: Joi.string().email().required(),
-            password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required()
+            password: Joi.string().pattern(this.PW_REGEX).required()
         });
 
         const { error } = loginSchema.validate(this.body);
-        if(error) return this.showError(400, error.details);
+        if(error) return this.showError(400, "Please, provide correct email & password");
 
         // Searching the db
         const userModel = new UserModel();
@@ -41,61 +41,46 @@ class UserController extends Controller {
 
     async register() {
 
-        if(!this.body.name){
-            return this.res.status(StatusCodes.BAD_REQUEST).json({
-                error: "Name not provided"
-            });
-        }
-
-        if(!this.body.mail){
-            return this.res.status(StatusCodes.BAD_REQUEST).json({
-                error: "Email adress not provided"
-            });
-        }
-
-        if(!this.body.password){
-            return this.res.status(StatusCodes.BAD_REQUEST).json({
-                error: "Password not provided"
-            });
-        }
-
-        if(!this.body.displayedName){
-            return this.res.status(StatusCodes.BAD_REQUEST).json({
-                error: "Displayed Name not provided"
-            });
-        }
-
-        this.body.email = this.body.email.trim().toLowerCase();
-
-        let error;
-        (this.body.password.length < this.PW_MIN_LENGTH) ? error = "short" : (this.body.password.length > this.PW_MAX_LENGTH) ? error = "long" : error = false;
-        if(error) {
-            return this.res.status(StatusCodes.BAD_REQUEST).json({
-                error: "Password too " + error
-            });
-        } 
-
-        const sameMailUsers = await this.users.findByEmail(this.body.email);
-        if(sameMailUsers) {
-            return this.res.status(StatusCodes.CONFLICT).json({
-                error: "User with this email already exists"
-            });
-        }
-
-        let userId;
-
-        try {
-            userId = await this.users.addUser(this.body.name, this.body.email, this.body.password, this.body.displayedName);
-        } catch(error) {
-            return this.res.status(StatusCodes.BAD_REQUEST).json({
-                error: error
-            });
-        }
-
-        this.res.status(StatusCodes.CREATED).json({
-            status: "User created",
-            id: userId
+        //Validation
+        const registerSchema = Joi.object({
+            email: Joi.string()
+                .email()
+                .required(),
+            password: Joi.string()
+                .pattern(this.PW_REGEX)
+                .required(),
+            name: Joi.string()
+                .min(2)
+                .max(20),
+            displayedName: Joi.string()
+                .min(2)
+                .max(20)
         });
+
+        const { error } = registerSchema.validate(this.body);
+        if(error) return this.showError(400, error.details);
+
+        const sameMailUser = await this.users.findByEmail(this.body.email);
+        if(sameMailUser) return this.showError(400, "User with this email already exists");
+
+        //Add user and hash
+        this.users.addUser(this.body.name, this.body.email, this.body.displayedName)
+            .then(user => {
+                this.users.addHash(user._id, this.body.password)
+                    .then(() => {
+                        return this.res.status(201).json({
+                            status: "User created",
+                            user: user
+                        });
+                    })
+                    .catch(error => {
+                        this.users.removeById(user._id)
+                        return this.showError(500, error);
+                    });
+            })
+            .catch(error => {
+                return this.showError(500, error);
+            });
     }
 }
 

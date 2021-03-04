@@ -1,8 +1,6 @@
-const mongoose = require('mongoose');
+const { Schema } = require('mongoose');
 
-const userSchema = mongoose.Schema({
-
-    _id: mongoose.Schema.Types.ObjectId,
+const userSchema = new Schema({
 
     email: { 
         type: String, 
@@ -22,26 +20,21 @@ const userSchema = mongoose.Schema({
     displayedName: {
         type: String,
         maxlength: 16,
-        trim: true
+        trim: true,
+        unique: true
     },
 
     friends: [{
-        _id: mongoose.Schema.Types.ObjectId,
+        _id: Schema.Types.ObjectId,
         name: String,
         displayedName: String
     }],
 
-    createdAt: {
-        type: Date
-    },
-
-    updatedAt: {
-        type: Date
-    },
-
     lastActivity: {
         type: Date
     }
+}, {
+    timestamps: true
 });
 
 module.exports = userSchema;

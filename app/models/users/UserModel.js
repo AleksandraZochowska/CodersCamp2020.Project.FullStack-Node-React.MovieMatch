@@ -1,9 +1,9 @@
-const Model = require("../Model");
-const userSchema = require("./userSchema");
-const hashSchema = require("./hashSchema");
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Model = require("../Model");
+const userSchema = require("./userSchema");
+const hashSchema = require("./hashSchema");
 
 class UserModel extends Model {
 
@@ -13,18 +13,14 @@ class UserModel extends Model {
         this.Hash = mongoose.model("Hash", hashSchema);
         this.mongoURL = process.env.MONGO_URL;
         this.mongoDB = process.env.MONGO_DB;
+        this.pseudoIdLength = 6;
     }
     
-    addUser(name, email, password, displayedName) {
+    addUser(name, email, displayedName) {
 
         return new Promise(async (resolve, reject) => {
 
-            await this.connectToDB();
-       
-            const userId = new mongoose.Types.ObjectId();
-
             const user = new this.User({
-                _id: userId,
                 email: email,
                 name: name,
                 displayedName: displayedName + this.generatePseudoId(),
@@ -32,22 +28,13 @@ class UserModel extends Model {
                 lastActivity: new Date()
             });
             user.save()
-                .then(() => {
-                    this.addHash(userId, password)
-                        .then(() => {
-                            this.disconnectFromDB();
-                            resolve(userId);
-                        })
-                        .catch((err) => {
-                            this.disconnectFromDB();
-                            reject(err);
-                        });
+                .then((user) => {
+                    resolve(user);
                 })
                 .catch((err) => {
-                    this.disconnectFromDB();
                     reject(err);
                 });
-        });
+            })
     }
 
     addHash(userId, password) {
@@ -59,7 +46,6 @@ class UserModel extends Model {
                     reject(err);
                 }
                 const hashedEntry = new this.Hash({
-                    _id: new mongoose.Types.ObjectId(),
                     userId: userId,
                     hash: hash
                 });
@@ -67,21 +53,39 @@ class UserModel extends Model {
                     .then(resolve(userId))
                     .catch(err => reject(err));
             });
-        })
+        });
+    }
+
+    findById(id) {
+
+        return new Promise(async (resolve, reject) => {
+
+            this.User.findById(id, (err, user) => {
+                if(err) reject(err);
+                resolve(user);
+            });
+        });
     }
   
     findByEmail(email) {
 
         return new Promise(async (resolve, reject) => {
 
-            await this.connectToDB();
-
             this.User.findOne({email: email}, (err, user) => {
-                this.disconnectFromDB();
                 if (err) reject(err);
                 resolve(user);
             });
+        });
+    }
 
+    removeById(id) {
+
+        return new Promise(async (resolve, reject) => {
+
+            this.User.findByIdAndDelete(id, (err, user) => {
+                if (err) reject(err);
+                resolve(user);
+            });
         });
     }
 
@@ -89,10 +93,7 @@ class UserModel extends Model {
 
         return new Promise(async (resolve, reject) => {
 
-            await this.connectToDB();
-
             this.Hash.findOne({userId: user._id}, (err, hash) => {
-                this.disconnectFromDB();
                 if (err) reject(err);
                 bcrypt.compare(`${password}`, hash.hash, (authError, result) => {
                     if (authError) reject(authError);
@@ -102,15 +103,12 @@ class UserModel extends Model {
                     }
                     resolve(false);
                 });
-
             });
-
         });
     }
   
     generatePseudoId() {
-      const pseudoIdLength = 6;
-      return "#" + Math.floor(Math.random() * (10 ** pseudoIdLength - 1)).toString().padStart(pseudoIdLength,"0");
+      return "#" + Math.floor(Math.random() * (10 ** this.pseudoIdLength - 1)).toString().padStart(this.pseudoIdLength,"0");
     }
 
 }

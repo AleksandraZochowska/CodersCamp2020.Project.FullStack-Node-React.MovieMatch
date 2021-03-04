@@ -1,8 +1,6 @@
-const mongoose = require('mongoose');
+const { Schema} = require('mongoose');
 
-const userSchema = mongoose.Schema({
-
-    _id: mongoose.Schema.Types.ObjectId,
+const userSchema = new Schema({
 
     email: { 
         type: String, 
@@ -27,7 +25,7 @@ const userSchema = mongoose.Schema({
     },
 
     friends: [{
-        _id: mongoose.Schema.Types.ObjectId,
+        _id: Schema.Types.ObjectId,
         name: String,
         displayedName: String
     }],

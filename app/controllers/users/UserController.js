@@ -76,7 +76,7 @@ class UserController extends Controller {
                         });
                     })
                     .catch(error => {
-                        this.users.removeById(user._id)
+                        this.users.removeUserById(user._id)
                         return this.showError(500, error);
                     });
             })
@@ -171,10 +171,10 @@ class UserController extends Controller {
         // Validation:
         const searchUserSchema = Joi.alternatives().try(
             Joi.object({
-                displayedName: Joi.string()
+                displayedName: Joi.string().required()
             }),
             Joi.object({
-                email: Joi.string().email()
+                email: Joi.string().email().required()
             })
         );
 
@@ -231,6 +231,69 @@ class UserController extends Controller {
             
             // Send success message:
             return this.success({ message: "Your password has been updated" });
+
+        } catch(error) {
+
+            return this.showError(500);
+        }
+    }
+
+    async editUserData() {
+
+        // Validation:
+        const editDataSchema = Joi.alternatives().try(
+            Joi.object({
+                newName: Joi.string().required()
+            }),
+            Joi.object({
+                newDisplayedName: Joi.string().required()
+            }),
+            Joi.object({
+                password: Joi.string().required(),
+                newEmail: Joi.string().email().required()
+            })
+        );
+
+        const { error } = editDataSchema.validate(this.body);
+        if(error) return this.showError(400, "Validation error - provide required data in correct format");
+        
+        const userModel = new UserModel();
+        try {
+            
+            if(this.body.newName) {
+
+                // Change user's name
+                const changeName = await userModel.changeUserName(this.req.userId, this.body.newName);
+                if(!changeName) return this.showError(404, "User not found, cannot update name");
+                
+                return this.success({ message: `Name changed to: ${this.body.newName}` });
+            }
+            
+            if(this.body.newDisplayedName) {
+
+                // Change user's displayed name
+                const changeDisplayedName = await userModel.changeUserDisplayedName(this.req.userId, this.body.newDisplayedName);
+                if(!changeDisplayedName) return this.showError(404, "User not found, cannot update displayed name");
+
+                return this.success({ message: `Displayed name changed to: ${this.body.newDisplayedName}` });
+            }
+            
+            if(this.body.newEmail) {
+
+                if (!this.body.password) return this.showError(401, "Provide password to change account email");
+
+                // Check if given password is correct:
+                const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
+                if(!pwCorrect) return this.showError(401, "Password incorrect");
+
+                // Change user's email
+                const changeEmail = await userModel.changeUserEmail(this.req.userId, this.body.newEmail);
+                if(!changeEmail) return this.showError(404, "User not found, cannot update email");
+
+                return this.success({ message: `Email changed to: ${this.body.newEmail}` });
+            }
+
+            return this.showError(400);
 
         } catch(error) {
 

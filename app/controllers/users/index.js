@@ -10,3 +10,4 @@ module.exports.searchUser = (req, res) => { new UserController(req, res).searchU
 
 //PATCH:
 module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };
+module.exports.editPassword = (req, res) => { new UserController(req, res).editPassword() };

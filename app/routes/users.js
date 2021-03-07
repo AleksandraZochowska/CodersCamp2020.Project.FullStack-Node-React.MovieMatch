@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const usersController = require("../controllers/users")
+const tokenVerification = require("../middlewares/tokenVerification")
 
 // POST:
 router.post("/login", usersController.login);
@@ -11,5 +12,6 @@ router.get("/searchuser", usersController.searchUser);
 
 //PATCH:
 router.patch("/resetpassword", usersController.resetPassword);
+router.patch("/profile/edit/editpassword", tokenVerification, usersController.editPassword);
 
 module.exports = router;

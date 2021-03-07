@@ -9,5 +9,6 @@ router.post("/forgotpassword", usersController.forgotPassword);
 
 //PATCH:
 router.patch("/resetpassword", usersController.resetPassword);
+router.patch("/profile/edit/editpassword", tokenVerification, usersController.editPassword);
 
 module.exports = router;

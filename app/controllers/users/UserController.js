@@ -165,6 +165,39 @@ class UserController extends Controller {
             }
         });
     }
+
+    async editPassword() {
+
+        // Validate reqest body:
+        const resetPasswordSchema = Joi.object({
+            oldPassword: Joi.string().required(),
+            newPassword: Joi.string().pattern(this.PW_REGEX).required(),
+            repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+        });
+
+        const { error } = resetPasswordSchema.validate(this.body);
+        if(error) return this.showError(400, "Provide valid new password");
+
+        const userModel = new UserModel();
+        try {
+            
+            // Check if old password is correct:
+            const pwCorrect = await userModel.checkHash(this.req.userId, this.body.oldPassword);
+            if(!pwCorrect) return this.showError(401, "Old password incorrect");
+
+            // Update user's password:
+            const pwUpdated = await userModel.changeHash(this.req.userId, this.body.newPassword);
+            if(!pwUpdated) return this.showError(500, "Password could not have been updated");
+            
+            // Send success message:
+            return this.success({ message: "Your password has been updated" });
+
+        } catch(error) {
+
+            return this.showError(500);
+
+        }
+    }
 }
 
 module.exports = UserController;

@@ -134,6 +134,22 @@ class UserModel extends Model {
         });
     }
 
+    checkHash(userId, password) {
+
+        return new Promise((resolve, reject) => {
+            
+            this.Hash.findOne({userId: userId}, (err, hash) => {
+                if (err) reject(err);
+                if (!hash) resolve(hash);
+                
+                bcrypt.compare(`${password}`, hash.hash, (compareError, result) => {
+                    if(compareError) reject(compareError);
+                    resolve(result);
+                });
+            });
+        });
+    }
+
     deleteResetToken(user) {
         
         return new Promise((resolve, reject) => {

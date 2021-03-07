@@ -166,6 +166,46 @@ class UserController extends Controller {
         });
     }
 
+    async searchUser() {
+
+        // Validation:
+        const searchUserSchema = Joi.alternatives().try(
+            Joi.object({
+                displayedName: Joi.string()
+            }),
+            Joi.object({
+                email: Joi.string().email()
+            })
+        );
+
+        const { error } = searchUserSchema.validate(this.body);
+        if(error) return this.showError(400, "Please, provide one of two: email or displayedName");
+
+        const userModel = new UserModel();
+        
+        try {
+
+            if(this.body.email) {
+                const user = await userModel.findByEmail(this.body.email);
+                if(!user) return this.showError(400, "User with the specified email does not exist!");
+                return this.success({
+                    user: user
+                });
+            }
+
+            if(this.body.displayedName) {
+                const user = await userModel.findByDisplayedName(this.body.displayedName);
+                if(!user) return this.showError(400, "User with the specified displayedName does not exist!");
+                return this.success({
+                    user: user
+                });
+            }
+
+        } catch(error) {
+            return this.showError(500, "Error");
+        }
+    }
+
     async editPassword() {
 
         // Validate reqest body:
@@ -195,7 +235,6 @@ class UserController extends Controller {
         } catch(error) {
 
             return this.showError(500);
-
         }
     }
 }

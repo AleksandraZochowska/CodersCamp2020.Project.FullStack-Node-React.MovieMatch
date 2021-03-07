@@ -80,6 +80,19 @@ class UserModel extends Model {
         });
     }
 
+    findByDisplayedName(displayedName) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findOne({displayedName: displayedName}, (err, user) => {
+                if (err) reject(err);
+                this.user = user;
+                resolve(user);
+            });
+
+        });
+    }
+
     findByResetToken(token) {
 
         return new Promise((resolve, reject) => {

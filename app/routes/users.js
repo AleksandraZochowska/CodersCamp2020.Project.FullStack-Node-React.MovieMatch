@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const usersController = require("../controllers/users")
+const tokenVerification = require("../middlewares/tokenVerification")
 
 // POST:
 router.post("/login", usersController.login);

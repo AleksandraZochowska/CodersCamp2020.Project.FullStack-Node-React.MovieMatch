@@ -114,11 +114,11 @@ class UserModel extends Model {
         });
     }
 
-    changeHash(user, newPassword) {
+    changeHash(userId, newPassword) {
 
         return new Promise((resolve, reject) => {
 
-            this.Hash.findOne({userId: user._id}, (err, hash) => {
+            this.Hash.findOne({userId: userId}, (err, hash) => {
                 if (err || !hash) reject(err);
                 
                 bcrypt.hash(newPassword, 10, (err, newHash) => {

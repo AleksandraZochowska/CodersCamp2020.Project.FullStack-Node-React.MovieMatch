@@ -148,7 +148,7 @@ class UserController extends Controller {
                 if(!user) return this.showError(401, "Invalid token");
                 
                 // Update user's password:
-                const pwUpdated = await userModel.changeHash(user, this.body.newPassword);
+                const pwUpdated = await userModel.changeHash(user._id, this.body.newPassword);
                 if(!pwUpdated) return this.showError(500, "Password could not have been updated");
                 
                 // Delete resetToken:

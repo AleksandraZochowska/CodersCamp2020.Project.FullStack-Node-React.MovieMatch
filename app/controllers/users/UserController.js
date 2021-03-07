@@ -76,7 +76,7 @@ class UserController extends Controller {
                         });
                     })
                     .catch(error => {
-                        this.users.removeById(user._id)
+                        this.users.removeUserById(user._id)  
                         return this.showError(500, error);
                     });
             })
@@ -236,6 +236,41 @@ class UserController extends Controller {
 
             return this.showError(500);
         }
+    }
+
+    async deleteUser() {
+
+        // Validate reqest body:
+        const deleteUserSchema = Joi.object({
+            password: Joi.string().required(),
+            confirmation: Joi.string().valid('yes').required()
+        });
+
+        const { error } = deleteUserSchema.validate(this.body);
+        if(error) return this.showError(400, "Please, provide password and confirm your selection");
+
+        const userModel = new UserModel();
+        
+        // Check if password is correct:
+        const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
+        if(!pwCorrect) return this.showError(401, "Password incorrect");
+
+        // Drop user's
+        try {
+
+            // Drop user
+            await userModel.removeUserById(this.req.userId);
+
+            // Drop Hash
+            await userModel.removeUserHashId(this.req.userId);
+          
+            // Send success message:
+            return this.success({ message: "Your account has been dropped" });
+        } catch(error) {
+
+            return this.showError(500);
+        }
+        
     }
 }
 

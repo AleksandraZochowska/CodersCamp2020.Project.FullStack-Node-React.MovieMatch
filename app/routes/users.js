@@ -13,5 +13,6 @@ router.get("/searchuser", usersController.searchUser);
 //PATCH:
 router.patch("/resetpassword", usersController.resetPassword);
 router.patch("/profile/edit/editpassword", tokenVerification, usersController.editPassword);
+router.patch("/profile/edit/deleteuser", tokenVerification, usersController.deleteUser);
 
 module.exports = router;

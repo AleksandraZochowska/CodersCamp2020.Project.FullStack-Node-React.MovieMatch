@@ -104,13 +104,24 @@ class UserModel extends Model {
         });
     }
 
-    removeById(id) {
+    removeUserById(id) {
 
         return new Promise((resolve, reject) => {
 
             this.User.findByIdAndDelete(id, (err, user) => {
                 if (err) reject(err);
                 resolve(user);
+            });
+        });
+    }
+
+    removeUserHashId(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            this.Hash.findOneAndDelete({userId: userId}, (err, hash) => {
+                if (err) reject(err);
+                resolve(hash);
             });
         });
     }

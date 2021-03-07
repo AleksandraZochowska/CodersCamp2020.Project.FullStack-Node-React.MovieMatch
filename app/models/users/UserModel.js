@@ -104,7 +104,7 @@ class UserModel extends Model {
         });
     }
 
-    removeById(id) {
+    removeUserById(id) {
 
         return new Promise((resolve, reject) => {
 
@@ -191,6 +191,57 @@ class UserModel extends Model {
                     if(!result) resolve(false);
                     const token = jwt.sign({userId: user._id}, `${process.env.PRIVATE_KEY}`, { expiresIn: "1h" });
                     if(token) resolve(token);
+                });
+            });
+        });
+    }
+
+    changeUserName(userId, newName) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(user);
+                
+                user.name = `${newName}`;
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    changeUserDisplayedName(userId, newDisplayedName) {
+                    
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(user);
+                
+                user.displayedName = `${newDisplayedName}#${user.displayedName.split('#')[1]}`;
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    changeUserEmail(userId, newEmail) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(user);
+                
+                user.email = `${newEmail}`;
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    resolve(savedDoc);
                 });
             });
         });

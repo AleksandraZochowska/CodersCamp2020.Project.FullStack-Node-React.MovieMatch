@@ -7,3 +7,4 @@ module.exports.forgotPassword = (req, res) => { new UserController(req, res).for
 
 //PATCH:
 module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };
+module.exports.editPassword = (req, res) => { new UserController(req, res).editPassword() };

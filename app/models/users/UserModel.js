@@ -114,11 +114,11 @@ class UserModel extends Model {
         });
     }
 
-    changeHash(user, newPassword) {
+    changeHash(userId, newPassword) {
 
         return new Promise((resolve, reject) => {
 
-            this.Hash.findOne({userId: user._id}, (err, hash) => {
+            this.Hash.findOne({userId: userId}, (err, hash) => {
                 if (err || !hash) reject(err);
                 
                 bcrypt.hash(newPassword, 10, (err, newHash) => {
@@ -129,6 +129,22 @@ class UserModel extends Model {
                         if(err) reject(err);
                         resolve(savedDoc);
                     });
+                });
+            });
+        });
+    }
+
+    checkHash(userId, password) {
+
+        return new Promise((resolve, reject) => {
+            
+            this.Hash.findOne({userId: userId}, (err, hash) => {
+                if (err) reject(err);
+                if (!hash) resolve(hash);
+                
+                bcrypt.compare(`${password}`, hash.hash, (compareError, result) => {
+                    if(compareError) reject(compareError);
+                    resolve(result);
                 });
             });
         });

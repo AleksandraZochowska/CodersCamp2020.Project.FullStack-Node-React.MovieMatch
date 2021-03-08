@@ -80,6 +80,19 @@ class UserModel extends Model {
         });
     }
 
+    findByDisplayedName(displayedName) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findOne({displayedName: displayedName}, (err, user) => {
+                if (err) reject(err);
+                this.user = user;
+                resolve(user);
+            });
+
+        });
+    }
+
     findByResetToken(token) {
 
         return new Promise((resolve, reject) => {
@@ -91,13 +104,24 @@ class UserModel extends Model {
         });
     }
 
-    removeById(id) {
+    removeUserById(id) {
 
         return new Promise((resolve, reject) => {
 
             this.User.findByIdAndDelete(id, (err, user) => {
                 if (err) reject(err);
                 resolve(user);
+            });
+        });
+    }
+
+    removeUserHashId(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            this.Hash.findOneAndDelete({userId: userId}, (err, hash) => {
+                if (err) reject(err);
+                resolve(hash);
             });
         });
     }
@@ -114,11 +138,11 @@ class UserModel extends Model {
         });
     }
 
-    changeHash(user, newPassword) {
+    changeHash(userId, newPassword) {
 
         return new Promise((resolve, reject) => {
 
-            this.Hash.findOne({userId: user._id}, (err, hash) => {
+            this.Hash.findOne({userId: userId}, (err, hash) => {
                 if (err || !hash) reject(err);
                 
                 bcrypt.hash(newPassword, 10, (err, newHash) => {
@@ -129,6 +153,22 @@ class UserModel extends Model {
                         if(err) reject(err);
                         resolve(savedDoc);
                     });
+                });
+            });
+        });
+    }
+
+    checkHash(userId, password) {
+
+        return new Promise((resolve, reject) => {
+            
+            this.Hash.findOne({userId: userId}, (err, hash) => {
+                if (err) reject(err);
+                if (!hash) resolve(hash);
+                
+                bcrypt.compare(`${password}`, hash.hash, (compareError, result) => {
+                    if(compareError) reject(compareError);
+                    resolve(result);
                 });
             });
         });
@@ -162,6 +202,57 @@ class UserModel extends Model {
                     if(!result) resolve(false);
                     const token = jwt.sign({userId: user._id}, `${process.env.PRIVATE_KEY}`, { expiresIn: "1h" });
                     if(token) resolve(token);
+                });
+            });
+        });
+    }
+
+    changeUserName(userId, newName) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(user);
+                
+                user.name = `${newName}`;
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    changeUserDisplayedName(userId, newDisplayedName) {
+                    
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(user);
+                
+                user.displayedName = `${newDisplayedName}#${user.displayedName.split('#')[1]}`;
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    changeUserEmail(userId, newEmail) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(user);
+                
+                user.email = `${newEmail}`;
+                user.save((err, savedDoc) => {
+                    if(err) reject(err);
+                    resolve(savedDoc);
                 });
             });
         });

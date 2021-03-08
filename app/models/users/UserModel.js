@@ -115,6 +115,17 @@ class UserModel extends Model {
         });
     }
 
+    removeUserHashId(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            this.Hash.findOneAndDelete({userId: userId}, (err, hash) => {
+                if (err) reject(err);
+                resolve(hash);
+            });
+        });
+    }
+
     addToken(token) {
         
         return new Promise((resolve, reject) => {

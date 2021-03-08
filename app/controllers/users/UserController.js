@@ -34,8 +34,8 @@ class UserController extends Controller {
             const token = await userModel.authorize(user, this.body.password);
             if(!token) return this.showError(401);
             return this.success({
-                user: user,
-                token: token
+                token: token,
+                user: user
             });
         } catch(error) {
             return this.showError(500, "Error");
@@ -76,6 +76,7 @@ class UserController extends Controller {
                         });
                     })
                     .catch(error => {
+
                         this.users.removeUserById(user._id)
                         return this.showError(500, error);
                     });
@@ -100,7 +101,7 @@ class UserController extends Controller {
         try {
 
             const user = await userModel.findByEmail(this.body.email);
-            if(!user) return this.showError(400, "You never registered to MovieMatch");
+            if(!user) return this.showError(400, "You never registered to MovieMatch or your account has already been deleted");
             
             // Create reset token:
             const token = jwt.sign({userId: user._id}, `${process.env.RESET_PASSWORD_KEY}`, { expiresIn: "5m" });
@@ -130,7 +131,7 @@ class UserController extends Controller {
         });
 
         const { error } = resetPasswordSchema.validate(this.body);
-        if(error) return this.showError(400, "Provide valid new password");
+        if(error) return this.showError(400, "Provide valid new password: at least one small letter, one big letter, one digit & one special character");
 
         // Verify the token:
         const resetToken = this.req.headers.resettoken;
@@ -138,13 +139,11 @@ class UserController extends Controller {
             
             if(err || !decodedToken) return this.showError(401, "Wrong or expired token");
 
-            // Check if user with sent resetToken exists:
             const userModel = new UserModel();
-
+            
             try {
-                
+                // Check if user with sent resetToken exists:
                 const user = await userModel.findByResetToken(resetToken);
-        
                 if(!user) return this.showError(401, "Invalid token");
                 
                 // Update user's password:
@@ -179,7 +178,7 @@ class UserController extends Controller {
         );
 
         const { error } = searchUserSchema.validate(this.body);
-        if(error) return this.showError(400, "Please, provide one of two: email or displayedName");
+        if(error) return this.showError(400, "Please, provide one of the two: email or displayedName");
 
         const userModel = new UserModel();
         
@@ -216,7 +215,7 @@ class UserController extends Controller {
         });
 
         const { error } = resetPasswordSchema.validate(this.body);
-        if(error) return this.showError(400, "Provide valid new password");
+        if(error) return this.showError(400, "Provide valid new password & repeat it");
 
         const userModel = new UserModel();
         try {
@@ -232,6 +231,38 @@ class UserController extends Controller {
             // Send success message:
             return this.success({ message: "Your password has been updated" });
 
+        } catch(error) {
+
+            return this.showError(500);
+        }
+    }
+
+    async deleteUser() {
+
+        // Validate reqest body:
+        const deleteUserSchema = Joi.object({
+            password: Joi.string().required(),
+            confirmation: Joi.string().valid('yes').required()
+        });
+
+        const { error } = deleteUserSchema.validate(this.body);
+        if(error) return this.showError(400, "Please, provide password and confirm your selection");
+
+        const userModel = new UserModel();
+        
+        // Drop user's
+        try {
+            // Check if password is correct:
+            const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
+            if(!pwCorrect) return this.showError(401, "Password incorrect");
+
+            // Drop user & hash
+            await userModel.removeUserById(this.req.userId);
+            await userModel.removeUserHashId(this.req.userId);
+          
+            // Send success message:
+            return this.success({ message: "Your account has been deleted" });
+        
         } catch(error) {
 
             return this.showError(500);
@@ -294,7 +325,7 @@ class UserController extends Controller {
             }
 
             return this.showError(400);
-
+            
         } catch(error) {
 
             return this.showError(500);

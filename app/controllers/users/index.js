@@ -9,9 +9,12 @@ module.exports.forgotPassword = (req, res) => { new UserController(req, res).for
 module.exports.searchUser = (req, res) => { new UserController(req, res).searchUser() };
 
 // PATCH:
-module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };
 module.exports.editPassword = (req, res) => { new UserController(req, res).editPassword() };
 module.exports.editUserData = (req, res) => { new UserController(req, res).editUserData() };
+
+// PUT:
+module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };
+module.exports.confirmRegistration = (req, res) => { new UserController(req, res).confirmRegistration() };
 
 // DELETE:
 module.exports.deleteUser = (req, res) => { new UserController(req, res).deleteUser() }

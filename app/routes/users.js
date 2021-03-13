@@ -11,9 +11,12 @@ router.post("/forgotpassword", usersController.forgotPassword);
 router.get("/searchuser", usersController.searchUser);
 
 // PATCH:
-router.patch("/resetpassword", usersController.resetPassword);
 router.patch("/profile/edit/editpassword", tokenVerification, usersController.editPassword);
 router.patch("/profile/edit/editdata", tokenVerification, usersController.editUserData);
+
+// PUT:
+router.put("/resetpassword/:resettoken", usersController.resetPassword);
+router.put("/register/:registrationtoken", usersController.confirmRegistration);
 
 // DELETE:
 router.delete("/profile/edit/deleteuser", tokenVerification, usersController.deleteUser);

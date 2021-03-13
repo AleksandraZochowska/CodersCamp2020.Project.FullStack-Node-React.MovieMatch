@@ -26,7 +26,8 @@ class UserModel extends Model {
                 name: name,
                 displayedName: displayedName + this.generatePseudoId(),
                 friends: [],
-                lastActivity: new Date()
+                lastActivity: new Date(),
+                active: false
             });
             user.save()
                 .then((user) => {
@@ -62,6 +63,7 @@ class UserModel extends Model {
 
             this.User.findById(id, (err, user) => {
                 if(err) reject(err);
+                this.user = user;
                 resolve(user);
             });
         });
@@ -99,6 +101,7 @@ class UserModel extends Model {
 
             this.User.findOne({"resetToken": `${token}`}, (err, user) => {
                 if (err) reject(err);
+                this.user = user;
                 resolve(user);
             });
         });
@@ -254,6 +257,18 @@ class UserModel extends Model {
                     if(err) reject(err);
                     resolve(savedDoc);
                 });
+            });
+        });
+    }
+
+    changeActivation(userId, isActive) {
+
+        return new Promise((resolve, reject) => {
+
+            this.user.active = isActive;
+            this.user.save((err, savedDoc) => {
+                if(err) reject(err);
+                resolve(savedDoc);
             });
         });
     }

@@ -1,89 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieMatch | Reset Password</title>
-    <style>
-
-        * {
-            margin: 0;
-            padding: 0;
-            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
-            color: #FAFAFA;
-        }
-
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        body {
-            background-color: #156064;
-        }
-
-        h1 {
-            width:100%;
-            font-size: 1.7rem;
-            border-top: 2px solid rgba(158, 120, 143, 0.9);
-            border-bottom: 2px solid rgba(158, 120, 143, 0.9);
-            margin-bottom: 20px;
-        }
-
-        p {
-            font-size: 1.1rem;
-            /* width: 100%; */
-            word-break: break-all;
-        }
-
-        a.button {
-            margin: 15px 0;
-            text-transform: uppercase;
-            font-size: 1.2rem;
-            text-decoration: none;
-            opacity: 0.8;
-            background-color: rgba(250, 250, 250, 0.1);
-            border: 1px solid;
-        }
-
-        a.button:hover {
-            opacity: 1;
-            background-color: rgba(250, 250, 250, 0.2);
-        }
-
-        #container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 7%;
-        }
-
-        #container > * {
-            padding: 15px;
-            text-align: center;
-            height: 100%;
-        }
-
-        .warning {
-            font-size: 0.8rem;
-            font-style: italic;
-            opacity: 0.9;
-            width: 100%;
-            border-top: 2px solid rgba(158, 120, 143, 0.7);
-            margin-top: 40px;
-        }
-
-    </style>
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>MovieMatch | Reset Password</title>
+  <style>
+    table, td, div, h1, p {
+      font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+      padding: 10px;
+      text-align: center;
+      color: #131515;
+    }
+  </style>
 </head>
-<body>
-  <div id="container">
-    <h1>You requested to reset your password to MovieMatch</h1>
-    <p>To reset the password, click on the link below:</p>
-    <a target="_blank" href="<%=process.env.FRONT%>/users/resetpassword/<%= token %>" class="button">Reset password</a>
-    <p>... or copy the link below to your browser:</p>
-    <p><%=process.env.FRONT%>/users/resetpassword/<%= token %></p>
-    <p class="warning">If you didn't want to reset your password or have never registered to MovieMatch, please, ignore this message.</p>
-  </div>
+<body style="margin:0;padding:0;word-spacing:normal;">
+    <table style="width:100%;border:none;border-spacing:0;text-align:left;font-family:Arial,sans-serif;font-size:16px;line-height:22px;color:#131515;">
+    <tr>
+        <td style="background-color:#ECE5F0;border-bottom: 4px solid rgba(75, 27, 53, 0.7);">
+        <h1 style="font-size:1.7rem;line-height:3rem;">You requested to reset your password to MovieMatch</h1>
+        </td>
+    </tr>
+    <tr>
+        <td style="background-color:#FAFAFA;">
+            <p>To reset the password, click on the link below:</p>
+            <p>
+                <a href="<%=process.env.FRONT%>/users/resetpassword/<%= token %>" style="background: #4B1B35;max-width: 600px; text-decoration: none; padding: 10px 25px; color: #FAFAFA; border-radius: 10px; display:inline-block;font-weight:bold;">
+                    Reset password
+                </a>
+            </p>
+            <p>... or copy the link below to your browser:</p>
+            <p style="word-break: break-all;font-size:0.95rem;font-style:italic;">
+                <%=process.env.FRONT%>/users/resetpassword/<%= token %>
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td style="background-color:#E9ECED;border-top:2px solid rgba(75, 27, 53, 0.7);">
+        <p style="font-size:0.8rem;font-style:italic;opacity:0.9;">
+            If you didn't want to reset your password or have never registered to MovieMatch, please, ignore this message.
+        </p>
+        </td>
+    </tr>
+    </table>   
 </body>
 </html>

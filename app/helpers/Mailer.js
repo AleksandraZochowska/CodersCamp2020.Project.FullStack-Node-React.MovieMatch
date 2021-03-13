@@ -6,13 +6,17 @@ class Mailer {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: 'smtp.ethereal.email',
+            host: 'smtp.gmail.com',
             port: 587,
             secure: false,
+            requireTLS: true,
             auth: {
                 user: process.env.DOMAIN_EMAIL,
                 pass: process.env.DOMAIN_EMAIL_PASS
-            }
+            },
+            tls: {
+                rejectUnauthorized: false
+            },
         });
     }
     
@@ -27,7 +31,8 @@ class Mailer {
 
                 let mailOptions = {
                     from: `"MovieMatch" <${process.env.DOMAIN_EMAIL}>`,
-                    to: `${recipient}`,
+                    to: `${process.env.DOMAIN_EMAIL}`,
+                    // to: `${recipient}`,
                     subject: `MovieMatch | ${template === "resetpw" ? "Reset password"
                         : template === "register" ? "Confirm Registration"
                         : "Newsletter"}`,

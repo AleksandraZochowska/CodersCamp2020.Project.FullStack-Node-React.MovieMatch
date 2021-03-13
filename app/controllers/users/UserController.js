@@ -2,6 +2,7 @@ const UserModel = require("../../models/users/UserModel");
 const Controller = require("../Controller");
 const Joi = require("@hapi/joi");
 const jwt = require('jsonwebtoken');
+const Mailer = require("../../helpers/Mailer")
 
 class UserController extends Controller {
     constructor(req, res) {
@@ -10,6 +11,11 @@ class UserController extends Controller {
         this.PW_MIN_LENGTH = 8;
         this.PW_MAX_LENGTH = 32;
         this.PW_REGEX = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,20})");
+        this.mailer = new Mailer();
+        this.template = {
+            RESET_PASSWORD: "resetpw",
+            REGISTER: "register"
+        }
     }
 
     async login() {
@@ -29,6 +35,9 @@ class UserController extends Controller {
             // Searching the db:
             const user = await userModel.findByEmail(this.body.email);
             if(!user) return this.showError(401);
+
+            // TODO: Check if user has been activated:
+            if(!user.active) return this.showError(401, "User has not been activated");
 
             // Authorization:
             const token = await userModel.authorize(user, this.body.password);
@@ -56,34 +65,73 @@ class UserController extends Controller {
         if(error) return this.showError(400, error.details);
 
         try {
+            const userModel = new UserModel();
 
-            const sameMailUser = await this.users.findByEmail(this.body.email);
+            // Check if noone had previously registered with given email:
+            const sameMailUser = await userModel.findByEmail(this.body.email);
             if(sameMailUser) return this.showError(400, "User with this email already exists");
+
+            // Add user and hash:
+            userModel.addUser(this.body.name, this.body.email, this.body.displayedName)
+                .then(user => {
+                    userModel.addHash(user._id, this.body.password)
+                        .then(async () => {
+                            // Create registration confirmation token:
+                            const token = jwt.sign({userId: user._id}, `${process.env.CONFIRM_KEY}`, { expiresIn: "2 days" });
+                            if(!token) return this.showError(500);
+
+                            // Send email for user to confirm registration:
+                            const messageSent = await this.mailer.sendEmail({
+                                recipient: user.email, name: user.name, token: token, template: this.template.REGISTER
+                            });
+                            if(!messageSent) this.showError(500, "Message couldn't have been sent");
+
+                            return this.success({message: `Registration email has been sent to ${this.body.email}`});
+                        })
+                        .catch(error => {
+
+                            userModel.removeUserById(user._id)
+                            return this.showError(500, error);
+                        });
+                })
+                .catch(error => {
+                    
+                    return this.showError(500, error);
+                });
 
         } catch(error) {
 
-            return this.showError(500);
+            return this.showError(500, error);
         }
-        
-        // Add user and hash:
-        this.users.addUser(this.body.name, this.body.email, this.body.displayedName)
-            .then(user => {
-                this.users.addHash(user._id, this.body.password)
-                    .then(() => {
-                        return this.res.status(201).json({
-                            status: "User created",
-                            user: user
-                        });
-                    })
-                    .catch(error => {
+    }
 
-                        this.users.removeUserById(user._id)
-                        return this.showError(500, error);
-                    });
-            })
-            .catch(error => {
-                return this.showError(500, error);
-            });
+    confirmRegistration() {
+        
+        // Verify the token:
+        const registrationToken = this.params.registrationtoken;
+        jwt.verify(registrationToken, process.env.CONFIRM_KEY, async (err, decodedToken) => {
+            
+            if(err || !decodedToken) return this.showError(401, "Wrong or expired token");
+            const userModel = new UserModel();
+            
+            try {
+
+                // Find user connected to the received registration token:
+                const user = await userModel.findById(decodedToken.userId);
+                if(!user) return this.showError(401, "No user in db");
+
+                // Update user's "active" flag:
+                const active = await userModel.changeActivation(user._id, true);
+                if(!active) return this.showError(500, "User could not have been activated");
+                
+                // Send success message:
+                return this.success({ message: "Your account has been activated" });
+
+            } catch(error) {
+
+                return this.showError(500);
+            }
+        });
     }
 
     async forgotPassword() {
@@ -111,8 +159,13 @@ class UserController extends Controller {
             const updatedUser = await userModel.addToken(token);
             if(!updatedUser) return this.showError(500);
             
-            // Return token:
-            return this.success({ resetToken: token });
+            // Send email with reset token:
+            const messageSent = await this.mailer.sendEmail({
+                recipient: this.body.email, name: user.name, token: token, template: this.template.RESET_PASSWORD
+            });
+            if(!messageSent) this.showError(500, "No message sent");
+
+            return this.success({message: `Email has been sent to ${this.body.email}`});
 
         } catch(error) {
 
@@ -134,7 +187,7 @@ class UserController extends Controller {
         if(error) return this.showError(400, "Provide valid new password: at least one small letter, one big letter, one digit & one special character");
 
         // Verify the token:
-        const resetToken = this.req.headers.resettoken;
+        const resetToken = this.params.resettoken;
         jwt.verify(resetToken, process.env.RESET_PASSWORD_KEY, async (err, decodedToken) => {
             
             if(err || !decodedToken) return this.showError(401, "Wrong or expired token");

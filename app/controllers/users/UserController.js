@@ -163,7 +163,7 @@ class UserController extends Controller {
             const messageSent = await this.mailer.sendEmail({
                 recipient: this.body.email, name: user.name, token: token, template: this.template.RESET_PASSWORD
             });
-            if(!messageSent) this.showError("No message sent");
+            if(!messageSent) this.showError(500, "No message sent");
 
             return this.success({message: `Email has been sent to ${this.body.email}`});
 

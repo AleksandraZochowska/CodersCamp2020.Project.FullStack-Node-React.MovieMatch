@@ -67,7 +67,7 @@ class UserModel {
         });
     }
 
-    findAllUsers(email) {
+     findAllUsers(email) {
 
         return new Promise((resolve, reject) => {
 
@@ -119,16 +119,23 @@ class UserModel {
         return filteredData;
     }
 
-    findByFilter(email, reqEmail) {
+    findByFilter(key, reqEmail, filteredItemsList) {
 
         return new Promise((resolve, reject) => {
 
-            this.User.find({ email: {'$regex': new RegExp(reqEmail), '$options': 'i' }}, (err, user) => {
-                if (err) reject(err);
-                // this.user = user;
-                resolve(user);
-            });
+            if(key === 'email') {
+                this.User.find({ email: filteredItemsList[0]['$regex']}, (err, user) => {
+                    if (err) reject(err);
+                    resolve(user); 
+               });
+            }
 
+            if(key === 'displayedName') {
+                this.User.find({ displayedName: filteredItemsList[0]['$regex']}, (err, user) => {
+                    if (err) reject(err);
+                    resolve(user); 
+                });
+            }
         });
     }
 

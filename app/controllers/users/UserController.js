@@ -222,25 +222,23 @@ class UserController extends Controller {
 
         try {
 
-            const user = await userModel.findAllUsers(this.query.email);
-            console.log(user);
-            const filters = this.userModel.usersFilter(this.query);
-            const filteredItemsList  = this.userModel.searchUsersByFilter(filters, this.query);
-             
+            const user = await this.users.findAllUsers(this.query);
+            const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+
             if(this.query.displayedName || this.query.email) { 
 
-                const filteredFriends = user.friends.filter(friend => {
-                    const friendName = this.query.displayedName ? friend.displayedName : friend.name;
-                    return friendName.match(filteredItemsList[0]['$regex']);
-                });
+                const qKey = this.query.displayedName ? 'displayedName' : 'email';
+                
+                const filters = this.users.usersFilter(this.query);
+                const filteredItemsList  = this.users.searchUsersByFilter(filters, this.query);
+                const filteredUsers = await this.users.findByFilter(qKey, this.query.displayedName, filteredItemsList);
 
-                const results = this.userModel.paginationModel(this.query.page, this.query.limit, filteredFriends);
+                const results = this.users.paginationModel(this.query.page, this.query.limit, filteredUsers);
                 return this.success(results);
 
             } else {
 
-                const userFriends = user.friends;
-                const results = this.userModel.paginationModel(this.query.page, this.query.limit, userFriends);
+                const results = this.users.paginationModel(this.query.page, this.query.limit, user);
                 return this.success(results);
             }
 

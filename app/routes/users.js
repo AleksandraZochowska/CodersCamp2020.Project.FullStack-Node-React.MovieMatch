@@ -8,7 +8,7 @@ router.post("/register", usersController.register);
 router.post("/forgotpassword", usersController.forgotPassword);
 
 // GET
-router.get("/searchuser", usersController.searchUser);
+router.get("/", usersController.searchUser);
 
 // PATCH:
 router.patch("/profile/edit/editpassword", tokenVerification, usersController.editPassword);

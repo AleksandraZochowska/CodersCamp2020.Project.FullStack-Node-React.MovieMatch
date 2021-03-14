@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const invitationSchema = require("./invitationSchema");
-
+const userSchema = require("../users/userSchema");
 
 class FriendModel {
 
@@ -123,6 +123,7 @@ class FriendModel {
             });
         });
     }
+
 }
 
 module.exports = FriendModel;

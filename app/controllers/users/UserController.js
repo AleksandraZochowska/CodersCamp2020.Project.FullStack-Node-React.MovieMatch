@@ -220,41 +220,32 @@ class UserController extends Controller {
 
     async searchUser() {
 
-        // Validation:
-        const searchUserSchema = Joi.alternatives().try(
-            Joi.object({
-                displayedName: Joi.string().required()
-            }),
-            Joi.object({
-                email: Joi.string().email().required()
-            })
-        );
-
-        const { error } = searchUserSchema.validate(this.body);
-        if(error) return this.showError(400, "Please, provide one of the two: email or displayedName");
-
-        const userModel = new UserModel();
-        
         try {
 
-            if(this.body.email) {
-                const user = await userModel.findByEmail(this.body.email);
-                if(!user) return this.showError(400, "User with the specified email does not exist!");
-                return this.success({
-                    user: user
-                });
-            }
+            const user = await userModel.findAllUsers(this.query.email);
+            console.log(user);
+            const filters = this.userModel.usersFilter(this.query);
+            const filteredItemsList  = this.userModel.searchUsersByFilter(filters, this.query);
+             
+            if(this.query.displayedName || this.query.email) { 
 
-            if(this.body.displayedName) {
-                const user = await userModel.findByDisplayedName(this.body.displayedName);
-                if(!user) return this.showError(400, "User with the specified displayedName does not exist!");
-                return this.success({
-                    user: user
+                const filteredFriends = user.friends.filter(friend => {
+                    const friendName = this.query.displayedName ? friend.displayedName : friend.name;
+                    return friendName.match(filteredItemsList[0]['$regex']);
                 });
+
+                const results = this.userModel.paginationModel(this.query.page, this.query.limit, filteredFriends);
+                return this.success(results);
+
+            } else {
+
+                const userFriends = user.friends;
+                const results = this.userModel.paginationModel(this.query.page, this.query.limit, userFriends);
+                return this.success(results);
             }
 
         } catch(error) {
-            return this.showError(500, "Error");
+            return this.showError(500, error.message);
         }
     }
 

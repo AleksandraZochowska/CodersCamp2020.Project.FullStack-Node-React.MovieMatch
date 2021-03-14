@@ -66,32 +66,136 @@ class UserModel {
             });
         });
     }
+
+    findAllUsers(email) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.find({}, (err, user) => {
+                if (err) reject(err);
+                resolve(user);
+            });
+
+        });
+    }
+
+    usersFilter(reqQuery) {
+
+        return [
+            {
+                key: 'email',
+                value: {
+                    $regex: new RegExp(reqQuery.email),
+                    $options: 'i',
+                },
+            },
+            {
+                key: 'displayedName',
+                value: {
+                    $regex: new RegExp(reqQuery.displayedName),
+                    $options: 'i',
+                },
+            },
+            {
+                key: 'name',
+                value: {
+                    $regex: new RegExp(reqQuery.name),
+                    $options: 'i',
+                },
+            }
+        ]
+    }
+
+    searchUsersByFilter(usersFilterData, reqQuery) {
+
+        const filteredData = [];
+
+        usersFilterData.forEach( (filteredItem) => {
+            if (reqQuery[filteredItem.key]) {
+                filteredData.push(filteredItem.value);
+            }
+        });
+
+        return filteredData;
+    }
+
+    findByFilter(email, reqEmail) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.find({ email: {'$regex': new RegExp(reqEmail), '$options': 'i' }}, (err, user) => {
+                if (err) reject(err);
+                // this.user = user;
+                resolve(user);
+            });
+
+        });
+    }
+
+    paginationModel(qPage, qLimit, filteredList) {
+
+        const page = parseInt(qPage);
+        const limit = parseInt(qLimit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const resultUsers = {};
+
+        resultUsers.next = {
+            page: page + 1,
+            limit: limit
+        }
+
+        resultUsers.previous = {
+            page: page - 1,
+            limit: limit
+        }
+
+        if (endIndex < filteredList.length) {
+            resultUsers.next = {
+                page: page + 1,
+                limit: limit
+            }
+        }
+
+        if (startIndex > 0) {
+            resultUsers.previous = {
+                page: page -1,
+                limit: limit
+            }
+        }
+        
+        resultUsers.results = filteredList.slice(startIndex, endIndex);
+        return resultUsers;
+    }
+
+    
   
-    findByEmail(email) {
+    // findByEmail(email) {
 
-        return new Promise((resolve, reject) => {
+    //     return new Promise((resolve, reject) => {
 
-            this.User.findOne({email: email}, (err, user) => {
-                if (err) reject(err);
-                this.user = user;
-                resolve(user);
-            });
+    //         this.User.findOne({email: email}, (err, user) => {
+    //             if (err) reject(err);
+    //             this.user = user;
+    //             resolve(user);
+    //         });
 
-        });
-    }
+    //     });
+    // }
 
-    findByDisplayedName(displayedName) {
+    // findByDisplayedName(displayedName) {
 
-        return new Promise((resolve, reject) => {
+    //     return new Promise((resolve, reject) => {
 
-            this.User.findOne({displayedName: displayedName}, (err, user) => {
-                if (err) reject(err);
-                this.user = user;
-                resolve(user);
-            });
+    //         this.User.findOne({displayedName: displayedName}, (err, user) => {
+    //             if (err) reject(err);
+    //             this.user = user;
+    //             resolve(user);
+    //         });
 
-        });
-    }
+    //     });
+    // }
 
     findByResetToken(token) {
 

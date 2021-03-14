@@ -57,6 +57,8 @@ class UserModel {
 
         return new Promise((resolve, reject) => {
 
+            if(!mongoose.Types.ObjectId.isValid(id)) resolve("invalid");
+
             this.User.findById(id, (err, user) => {
                 if(err) reject(err);
                 this.user = user;

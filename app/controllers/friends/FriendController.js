@@ -115,6 +115,31 @@ class FriendController extends Controller {
             return this.showError(500);
         }
     }
+
+    async showFriendsProfile() {
+        try {
+            // Find logged in user by id:
+            const user = await this.userModel.findById(this.req.userId);
+            if(!user) return this.showError(404, "User not found");
+            // Find friend by id:
+            const friend = await this.userModel.findById(this.params.friendid);
+            if(friend === "invalid") return this.showError(400, "Provide valid friend ID");
+            if(!friend) return this.showError(404, "Invited user not found");
+
+            // If user searches own id, show full profile info:
+            if(`${friend.id}` === this.req.userId) return this.success(user);
+
+            // Check if user & the person whose profile they want to see are friends:
+            const alreadyFriends = await this.checkIfFriends(user, friend);
+            if(!alreadyFriends) return this.showError(401, "You cannot see profile, you are not friends with this person.");
+
+            const friendsProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(friend);
+            return this.success(friendsProfile);
+            
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
     
     checkIfFriends(user, friend) {
         return user.friends.some((el) => {

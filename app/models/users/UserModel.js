@@ -1,18 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Model = require("../Model");
 const userSchema = require("./userSchema");
 const hashSchema = require("./hashSchema");
 
-class UserModel extends Model {
+class UserModel {
 
     constructor() {
-        super();
         this.User = mongoose.model("User", userSchema);
         this.Hash = mongoose.model("Hash", hashSchema);
-        this.mongoURL = process.env.MONGO_URL;
-        this.mongoDB = process.env.MONGO_DB;
         this.pseudoIdLength = 6;
         this.user;
     }

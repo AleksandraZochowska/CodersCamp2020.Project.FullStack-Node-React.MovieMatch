@@ -5,3 +5,6 @@ const MovieController = require("./MovieController");
 
 // POST:
 module.exports.addMovieToLiked = (req, res) => { new MovieController(req, res).addMovieToLiked() };
+
+// DELETE:
+module.exports.deleteMovieFromLiked = (req, res) => { new MovieController(req, res).deleteMovieFromLiked() };

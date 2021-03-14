@@ -70,6 +70,22 @@ class MovieModel {
             resolve(isInCollection);
         });
     }
+
+    deleteFromCollection(movieId) {
+        
+        return new Promise((resolve, reject) => {
+            
+            this.collection.user.movies = this.collection.user.movies.filter((movie) => {
+                return (movie.imdbId !== movieId);
+            } ); 
+            
+            this.collection.save((error, savedDoc) => {
+                if(error) reject(error);
+                this.collection = savedDoc;
+                resolve(savedDoc);
+            });
+        });
+    }
 }
 
 module.exports = MovieModel;

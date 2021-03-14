@@ -13,7 +13,7 @@ class MovieController extends Controller {
     async addMovieToLiked() {
         try {
             // Get movie data from OMDb API:
-            const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&i=${this.req.params.movieid}`);
+            const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&i=${this.params.movieid}`);
 
             // Check if user has a movie collection created:
             const collectionExists = await this.movieModel.findCollection(this.req.userId);
@@ -33,6 +33,27 @@ class MovieController extends Controller {
             if(!movieAdded) return this.showError(500, "Could not add movie to collection - try again later.");
 
             return this.success(`You have added ${movie.data.Title} to your collection`);
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
+
+    async deleteMovieFromLiked() {
+        try {
+            // Check if user has a movie collection:
+            const collectionExists = await this.movieModel.findCollection(this.req.userId);
+            if(!collectionExists) return this.showError(404, "Collection not found");
+            
+            // Check if the movie is in user's collection:
+            const movieInCollection = await this.movieModel.checkIfInCollection(this.params.movieid);
+            if(!movieInCollection) return this.showError(404, "Movie not found in collection");
+
+            // Delete movie from user's collection:
+            const movieDeleted = await this.movieModel.deleteFromCollection(this.params.movieid);
+            if(!movieDeleted) return this.showError(500, "Could not remove movie from collection - try again later.");
+
+            return this.success(`You have removed movie from your collection`);
 
         } catch(error) {
             return this.showError(500, error.message);

@@ -8,6 +8,9 @@ const tokenVerification = require("../middlewares/tokenVerification");
 // POST:
 router.post("/:movieid", tokenVerification, moviesController.addMovieToLiked);
 
+// PATCH:
+router.patch("/:movieid", tokenVerification, moviesController.toggleWatched);
+
 // DELETE:
 router.delete("/:movieid", tokenVerification, moviesController.deleteMovieFromLiked);
 

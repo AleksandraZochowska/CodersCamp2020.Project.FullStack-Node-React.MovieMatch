@@ -56,7 +56,26 @@ class MovieController extends Controller {
             return this.success(`You have removed movie from your collection`);
 
         } catch(error) {
-            return this.showError(500, error.message);
+            return this.showError(500);
+        }
+    }
+
+    async toggleWatched() {
+        try {
+            // Check if user has a movie collection:
+            const collection = await this.movieModel.findCollection(this.req.userId);
+            if(!collection) return this.showError(404, "Collection not found");
+            
+            // Check if the movie is in user's collection:
+            const movieInCollection = await this.movieModel.checkIfInCollection(this.params.movieid);
+            if(!movieInCollection) return this.showError(404, "Movie not found in collection");
+
+            // Toggle flag:
+            const toggledFlag = await this.movieModel.toggleWatchedFlag(this.params.movieid);
+            return this.success(`Watched changed to: ${toggledFlag}`);
+
+        } catch(error) {
+            return this.showError(500);
         }
     }
 }

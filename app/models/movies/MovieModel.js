@@ -86,6 +86,25 @@ class MovieModel {
             });
         });
     }
+
+    toggleWatchedFlag(movieId) {
+
+        return new Promise((resolve, reject) => {
+            
+            const index = this.collection.user.movies.findIndex((movie) => {
+                return movie.imdbId === movieId;
+            });
+
+            let flag = (this.collection.user.movies[index].watched === true) ? false : true;
+            this.collection.user.movies[index].watched = flag;
+            
+            this.collection.save((error, savedDoc) => {
+                if(error) reject(error);
+                this.collection = savedDoc;
+                resolve(flag);
+            });
+        });
+    }
 }
 
 module.exports = MovieModel;

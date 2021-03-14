@@ -36,7 +36,7 @@ class UserController extends Controller {
             const user = await userModel.findByEmail(this.body.email);
             if(!user) return this.showError(401);
 
-            // TODO: Check if user has been activated:
+            // Check if user has been activated:
             if(!user.active) return this.showError(401, "User has not been activated");
 
             // Authorization:
@@ -118,7 +118,7 @@ class UserController extends Controller {
 
                 // Find user connected to the received registration token:
                 const user = await userModel.findById(decodedToken.userId);
-                if(!user) return this.showError(401, "No user in db");
+                if(!user) return this.showError(404, "User not found");
 
                 // Update user's "active" flag:
                 const active = await userModel.changeActivation(user._id, true);

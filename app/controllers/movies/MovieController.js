@@ -7,7 +7,29 @@ class MovieController extends Controller {
         super(req, res);
         this.movieModel = new MovieModel();
     }
-    
+
+    async showSuggestions() {
+        try {
+            const subjects = [
+                "baby", "king", "cat", "nowhere", "anywhere", "sometimes", "always", "never", "fun", 
+                "today", "yesterday", "fantastic", "beauty", "dies", "plate", "master", "country", "men",
+                "black", "fancy", "for", "loop", "invocation", "Tadeusz"
+            ];
+            const number = Math.floor(Math.random() * (subjects.length + 1));
+            let subject = subjects[number];
+
+            // Get movies data from OMDb API by randomly selected word:
+            const page = this.query.page ? `&page=${this.query.page}` : `&page=1`;
+            const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&s=${subject}${page}`);
+            if(!movie || !movie.data.Search) return this.showError(500, "Search failed - try again later");                          
+
+            return this.success(movie.data.Search);
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
+
     async searchMovies() {
         try {
             if(!this.query.title) return this.showError(400, "Provide movie title to search by");                          

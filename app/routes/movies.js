@@ -4,6 +4,7 @@ const tokenVerification = require("../middlewares/tokenVerification");
 
 // GET:
 router.get("/", tokenVerification, moviesController.searchMovies);
+router.get("/suggest", tokenVerification, moviesController.showSuggestions);
 router.get("/:movieid", tokenVerification, moviesController.showMovieDetails);
 
 // POST:

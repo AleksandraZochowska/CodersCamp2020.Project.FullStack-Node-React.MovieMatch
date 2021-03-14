@@ -7,7 +7,7 @@ const invitationSchema = new Schema({
         name: String,
         displayedName: String
     },
-    reciver: {
+    receiver: {
         _id: Schema.Types.ObjectId,
         name: String,
         displayedName: String

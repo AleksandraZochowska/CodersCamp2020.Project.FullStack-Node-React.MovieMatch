@@ -24,10 +24,29 @@ class MovieController extends Controller {
         }
     }
 
+    async showMovieDetails() {
+        try {
+            // Get movie data from OMDb API by movieID:
+            const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&i=${this.params.movieid}`);
+            if(movie.data.Error === "Incorrect IMDb ID.") return this.showError(400, "Provide valid movie ID");
+            if(movie.data.Error) return this.showError(500);
+            
+            const { Title, imdbRating, Runtime, Year, Country, Genre, Director, Actors, Awards, Plot, Poster } = movie.data;
+            const movieDetails = { Title, imdbRating, Runtime, Year, Country, Genre, Director, Actors, Awards, Plot, Poster }
+            
+            return this.success(movieDetails);
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
+
     async addMovieToLiked() {
         try {
             // Get movie data from OMDb API by imdbID:
             const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&i=${this.params.movieid}`);
+            if(movie.data.Error === "Incorrect IMDb ID.") return this.showError(400, "Provide valid movie ID");
+            if(movie.data.Error) return this.showError(500);
 
             // Check if user has a movie collection created:
             const collectionExists = await this.movieModel.findCollection(this.req.userId);

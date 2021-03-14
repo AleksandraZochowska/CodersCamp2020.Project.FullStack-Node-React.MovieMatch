@@ -24,18 +24,31 @@ class FriendController extends Controller {
             // Check if user & the other person are not friends already:
             const alreadyFriends = await this.checkIfFriends(user, friend);
             if(alreadyFriends) return this.showError(409, "User is already friends with this person");
-            // Check if user had not already invited this person:
+
+            // Check if user had already invited this person before:
             const alreadyInvited = await this.friendModel.findInvitation(user, friend);
-            if(alreadyInvited) return this.showError(409, "Friend already invited");
-            // Check if user had not already been invited by this person:
+            if(alreadyInvited) {
+                
+                // If status is pending:
+                if(alreadyInvited.status === this.friendModel.invitationStatus.PENDING) return this.showError(409, "Friend already invited");
+                
+                // If invitation already existed before but it's not pending, change it's status & flag:
+                const updatedInvitation = await this.friendModel.updateInvitation(this.friendModel.invitationStatus.PENDING, false);
+                if(!updatedInvitation) return this.showError(500, "Cannot update. Try again later.");
+                return this.success(`You have invited ${updatedInvitation.receiver.displayedName} to friends`);
+            }
+
+            // Check if user had already been invited by this person & status is pending:
             const alreadyBeenInvited = await this.friendModel.findInvitation(friend, user);
-            if(alreadyBeenInvited) return this.showError(409, "User had already been invited by this person");
-            
+            if(alreadyBeenInvited && alreadyBeenInvited.status === this.friendModel.invitationStatus.PENDING) {
+                return this.showError(409, "User had already been invited by this person");
+            }
+
             // Create invitation document:
             const invitation = await this.friendModel.createInvitation(user, friend);
             if(!invitation) return this.showError(500, "Cannot create friend request right now. Try again later.");
             
-            return this.success(invitation);
+            return this.success(`You have invited ${invitation.receiver.displayedName} to friends`);
             
         } catch(error) {
             return this.showError(500);
@@ -44,7 +57,6 @@ class FriendController extends Controller {
     
     async acceptInvitation() {
         try {
-            
             // Find invitation:
             const invitation = await this.friendModel.findInvitationById(this.params.invitationid);
             if(invitation === "invalid") return this.showError(400, "Provide valid invitation ID"); 
@@ -72,20 +84,43 @@ class FriendController extends Controller {
             const updatedInvitation = await this.friendModel.updateInvitation(this.friendModel.invitationStatus.ACCEPTED, true);
             if(!updatedInvitation) return this.showError(500, "Cannot update. Try again later.");
 
-            return this.success(addedToFriends);
+            return this.success(`Invitation from ${invitation.sender.displayedName} has been accepted`);
 
         } catch(error) {
             return this.showError(500);
         }
     }
+    
+    async declineInvitation() {
+        try {
+            // Find invitation:
+            const invitation = await this.friendModel.findInvitationById(this.params.invitationid);
+            if(invitation === "invalid") return this.showError(400, "Provide valid invitation ID"); 
+            if(!invitation) return this.showError(404, "Invitation not found");
+            
+            // Check if user is permitted to decline the invitation (is the receiver)
+            if(`${invitation.sender._id}` === this.req.userId) return this.showError(401, "You cannot decline an invitation you sent");
+            if(`${invitation.receiver._id}` !== this.req.userId) return this.showError(401, "User did not receive such invitation");
+            
+            // Check if invitation hadn't already been resolved:
+            if(invitation.resolved === true) return this.showError(409, "Invitation had already been accepted or declined");
 
+            // Change status & "resolved" flag of invitation:
+            const updatedInvitation = await this.friendModel.updateInvitation(this.friendModel.invitationStatus.DECLINED, true);
+            if(!updatedInvitation) return this.showError(500, "Cannot update. Try again later.");
+
+            return this.success(`Invitation from ${invitation.sender.displayedName} has been declined`);
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
+    
     checkIfFriends(user, friend) {
         return user.friends.some((el) => {
             return (`${el._id}` == `${friend._id}`);
         });
     }
-
-    
 }
 
 module.exports = FriendController;

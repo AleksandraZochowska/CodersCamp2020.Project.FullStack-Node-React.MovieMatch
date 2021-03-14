@@ -8,11 +8,25 @@ class MovieController extends Controller {
         this.movieModel = new MovieModel();
     }
     
-    // searchMovies() {}
+    async searchMovies() {
+        try {
+            if(!this.query.title) return this.showError(400, "Provide movie title to search by");                          
+            
+            // Get movies data from OMDb API by title:
+            const page = this.query.page ? `&page=${this.query.page}` : `&page=1`;
+            const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&s=${this.query.title}${page}`);
+            if(!movie) return this.showError(500, "Search failed - try again later");                          
+
+            return this.success(movie.data.Search);
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
 
     async addMovieToLiked() {
         try {
-            // Get movie data from OMDb API:
+            // Get movie data from OMDb API by imdbID:
             const movie = await axios.get(`http://www.omdbapi.com/?apikey=${process.env.OMDB_KEY}&i=${this.params.movieid}`);
 
             // Check if user has a movie collection created:

@@ -124,10 +124,11 @@ class FriendController extends Controller {
             // Find friend by id:
             const friend = await this.userModel.findById(this.params.friendid);
             if(friend === "invalid") return this.showError(400, "Provide valid friend ID");
-            if(!friend) return this.showError(404, "Invited user not found");
+            if(!friend) return this.showError(404, "Friend not found");
 
             // If user searches own id, show full profile info:
-            if(`${friend.id}` === this.req.userId) return this.success(user);
+            const usersProfile = (({ _id, email, name, displayedName }) => ({ _id, email, name, displayedName }))(user);
+            if(`${friend.id}` === this.req.userId) return this.success(usersProfile);
 
             // Check if user & the person whose profile they want to see are friends:
             const alreadyFriends = await this.checkIfFriends(user, friend);

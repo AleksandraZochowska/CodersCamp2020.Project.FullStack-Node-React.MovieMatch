@@ -126,7 +126,7 @@ class FriendController extends Controller {
             if(friend === "invalid") return this.showError(400, "Provide valid friend ID");
             if(!friend) return this.showError(404, "Friend not found");
 
-            // If user searches own id, show full profile info:
+            // If user searches own id:
             if(`${friend.id}` === this.req.userId) return this.showError(400);
 
             // Check if user & the person whose profile they want to see are friends:

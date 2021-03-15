@@ -262,7 +262,7 @@ class UserController extends Controller {
             }
 
         } catch(error) {
-            return this.showError(500, error.message);
+            return this.showError(500);
         }
     }
 

@@ -229,6 +229,8 @@ class UserController extends Controller {
         try {
 
             const user = await this.users.findAllUsers(this.query);
+            const page = this.query.page || 1;
+            const limit = this.query.limit || 10;
 
             if(this.query.displayedName || this.query.email) { 
 
@@ -237,8 +239,7 @@ class UserController extends Controller {
                 const filters = this.users.usersFilter(this.query);
                 const filteredItemsList  = this.users.searchUsersByFilter(filters, this.query);
                 const filteredUsers = await this.users.findByFilter(qKey, this.query.displayedName, filteredItemsList);
-
-                const results = this.users.paginationModel(this.query.page, this.query.limit, filteredUsers);
+                const results = this.users.paginationModel(page, limit, filteredUsers);
                 const filteredUsersProfile = [];
 
                 results['results'].forEach(user => {
@@ -246,11 +247,11 @@ class UserController extends Controller {
                     filteredUsersProfile.push(usersProfile);
                 })
 
-                return this.success(filteredUsersProfile);
+                return this.success({users: filteredUsersProfile});
 
             } else {
 
-                const results = this.users.paginationModel(this.query.page, this.query.limit, user);
+                const results = this.users.paginationModel(page, limit, user);
                 const filteredUsersProfile = [];
 
                 results['results'].forEach(user => {
@@ -391,7 +392,7 @@ class UserController extends Controller {
 
         try {
 
-            const user = await this.users.findById(this.params.userId);
+            const user = await this.users.findById(this.params.userid);
             if(!user) return this.showError(404, "User not found");
 
             const fileEntry = await this.files.findByHash(user.avatar, user._id);
@@ -424,6 +425,7 @@ class UserController extends Controller {
             await this.users.changeAvatar(user._id, hash);
 
             const savePath = path.join(process.cwd(), process.env.FILE_STORAGE, `${user._id}`);
+            if(!fs.existsSync(path.join(process.cwd(), process.env.FILE_STORAGE))) fs.mkdirSync(path.join(process.cwd(), process.env.FILE_STORAGE));
             if(!fs.existsSync(savePath)) fs.mkdirSync(savePath);
             avatar.mv(path.join(savePath, hash));
 

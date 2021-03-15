@@ -46,7 +46,6 @@ class fileModel {
         return new Promise((resolve, reject) => {
 
             this.File.findOne({userId: userId, hash: hash}, (error, file) => {
-
                 if(error) reject(error);
                 resolve(file);
             });

@@ -167,37 +167,17 @@ class UserModel {
 
     paginationModel(qPage, qLimit, filteredList) {
 
-        const page = parseInt(qPage);
+        const page = parseInt(qPage) >= 1 ? parseInt(qPage) : 1;
         const limit = parseInt(qLimit);
-        const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-
-        const resultUsers = {};
-
-        resultUsers.next = {
-            page: page + 1,
-            limit: limit
-        }
-
-        resultUsers.previous = {
-            page: page - 1,
-            limit: limit
-        }
-
-        if (endIndex < filteredList.length) {
-            resultUsers.next = {
-                page: page + 1,
-                limit: limit
-            }
-        }
-
-        if (startIndex > 0) {
-            resultUsers.previous = {
-                page: page -1,
-                limit: limit
-            }
-        }
+        const startIndex = (page - 1) * limit;
         
+        const resultUsers = {};
+        const totalPages = Math.ceil(filteredList.length/limit);
+        
+        resultUsers.nextPage = (page + 1) > totalPages ? totalPages : (page + 1),
+        resultUsers.previousPage = (page - 1) < 1 ? 1 : (page - 1) > totalPages ? totalPages : (page - 1);
+
         resultUsers.results = filteredList.slice(startIndex, endIndex);
         return resultUsers;
     }

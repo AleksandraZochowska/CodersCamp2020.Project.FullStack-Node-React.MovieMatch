@@ -234,12 +234,26 @@ class UserController extends Controller {
                 const filteredUsers = await this.users.findByFilter(qKey, this.query.displayedName, filteredItemsList);
 
                 const results = this.users.paginationModel(this.query.page, this.query.limit, filteredUsers);
-                return this.success(results);
+                const filteredUsersProfile = [];
+
+                results['results'].forEach(user => {
+                    const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+                    filteredUsersProfile.push(usersProfile);
+                })
+
+                return this.success(filteredUsersProfile);
 
             } else {
 
                 const results = this.users.paginationModel(this.query.page, this.query.limit, user);
-                return this.success(results);
+                const filteredUsersProfile = [];
+
+                results['results'].forEach(user => {
+                    const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+                    filteredUsersProfile.push(usersProfile);
+                })
+
+                return this.success(filteredUsersProfile);
             }
 
         } catch(error) {

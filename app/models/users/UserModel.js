@@ -66,6 +66,32 @@ class UserModel {
             });
         });
     }
+    
+    findByEmail(email) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findOne({email: email}, (err, user) => {
+                if (err) reject(err);
+                this.user = user;
+                resolve(user);
+            });
+
+        });
+    }
+
+    findByDisplayedName(displayedName) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findOne({displayedName: displayedName}, (err, user) => {
+                if (err) reject(err);
+                this.user = user;
+                resolve(user);
+            });
+
+        });
+    }
 
      findAllUsers(email) {
 

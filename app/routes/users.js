@@ -12,7 +12,6 @@ router.post("/avatar", tokenVerification, usersController.setAvatar);
 router.get("/avatar/:userId", usersController.getAvatar);
 router.get("/", tokenVerification, usersController.searchUser);
 
-
 // PATCH:
 router.patch("/:id/password", tokenVerification, usersController.editPassword);
 router.patch("/:id", tokenVerification, usersController.editUserData);

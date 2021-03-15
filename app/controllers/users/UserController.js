@@ -1,15 +1,22 @@
 const UserModel = require("../../models/users/UserModel");
+const FileModel = require("../../models/files/fileModel");
 const Controller = require("../Controller");
 const Joi = require("@hapi/joi");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
+const fileSchema = require("../../models/files/fileSchema");
 
 class UserController extends Controller {
     constructor(req, res) {
         super(req, res);
         this.users = new UserModel();
+        this.files = new FileModel();
         this.PW_MIN_LENGTH = 8;
         this.PW_MAX_LENGTH = 32;
         this.PW_REGEX = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,20})");
+        this.ALLOWED_FILETYPES = ["image/png", "image/jpg", "image/png"];
+
     }
 
     async login() {
@@ -329,6 +336,56 @@ class UserController extends Controller {
         } catch(error) {
 
             return this.showError(500);
+        }
+    }
+
+    async getAvatar() {
+
+        try {
+
+            const user = await this.users.findById(this.params.userId);
+            if(!user) return this.showError(404, "User not found");
+
+            const fileEntry = await this.files.findByHash(user.avatar, user._id);
+            if(!fileEntry) return this.showError(404, "Avatar not found");
+
+            const savePath = path.join(process.cwd(), process.env.FILE_STORAGE, `${user._id}`, `${user.avatar}`);
+
+            this.res.sendFile(savePath)
+
+        } catch(error) {
+            return this.showError(500, error);
+        }
+    }
+
+    async setAvatar() {
+
+        try {
+            
+            if(!this.req.files) return this.showError(400, "No file uploaded");
+        
+            const user = await this.users.findById(this.req.userId);
+            if(!user) return this.showError(404, "User not found");
+
+            const avatar = this.req.files.avatar;
+            if(!avatar || !this.ALLOWED_FILETYPES.includes(avatar.mimetype)) return this.showError(400, "Wrong file format")
+
+            const fileEntry = await this.files.addFile(avatar, user);
+            const hash = fileEntry.hash;
+
+            await this.users.changeAvatar(user._id, hash);
+
+            const savePath = path.join(process.cwd(), process.env.FILE_STORAGE, `${user._id}`);
+            if(!fs.existsSync(savePath)) fs.mkdirSync(savePath);
+            avatar.mv(path.join(savePath, hash));
+
+            console.log(user._id);
+
+            return this.success({success: "avatar added"});
+
+        } catch(error) {
+
+            return this.showError(500, error);
         }
     }
 }

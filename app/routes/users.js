@@ -6,9 +6,11 @@ const tokenVerification = require("../middlewares/tokenVerification");
 router.post("/login", usersController.login);
 router.post("/register", usersController.register);
 router.post("/forgotpassword", usersController.forgotPassword);
+router.post("/avatar", tokenVerification, usersController.setAvatar);
 
 // GET
 router.get("/searchuser", usersController.searchUser);
+router.get("/avatar/:userId", usersController.getAvatar);
 
 // PATCH:
 router.patch("/resetpassword", usersController.resetPassword);

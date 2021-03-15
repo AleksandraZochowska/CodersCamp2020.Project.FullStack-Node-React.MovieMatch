@@ -11,8 +11,6 @@ class UserModel extends Model {
         super();
         this.User = mongoose.model("User", userSchema);
         this.Hash = mongoose.model("Hash", hashSchema);
-        this.mongoURL = process.env.MONGO_URL;
-        this.mongoDB = process.env.MONGO_DB;
         this.pseudoIdLength = 6;
         this.user;
     }
@@ -252,6 +250,40 @@ class UserModel extends Model {
                 user.email = `${newEmail}`;
                 user.save((err, savedDoc) => {
                     if(err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    changeAvatar(userId, avatarHash) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(null);
+
+                user.avatar = avatarHash;
+                user.save((err, savedDoc) => {
+                    if (err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    deleteUserAvatar(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(null);
+
+                user.avatar = null;
+                user.save((err, savedDoc) => {
+                    if (err) reject(err);
                     resolve(savedDoc);
                 });
             });

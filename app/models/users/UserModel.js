@@ -289,6 +289,9 @@ class UserModel {
                     if (err) reject(err);
                     resolve(savedDoc);
                 });
+            });
+        });
+    }
 
     changeActivation(userId, isActive) {
 

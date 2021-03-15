@@ -1,12 +1,10 @@
 const mongoose = require('mongoose');
 const { nanoid } = require("nanoid");
-const Model = require("../Model");
 const fileSchema = require("./fileSchema");
 
-class fileModel extends Model {
+class fileModel {
 
     constructor() {
-        super();
         this.File = mongoose.model("File", fileSchema);
     }
 

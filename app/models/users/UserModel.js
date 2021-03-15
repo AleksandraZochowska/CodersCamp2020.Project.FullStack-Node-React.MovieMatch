@@ -1,14 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Model = require("../Model");
 const userSchema = require("./userSchema");
 const hashSchema = require("./hashSchema");
 
-class UserModel extends Model {
+class UserModel {
 
     constructor() {
-        super();
         this.User = mongoose.model("User", userSchema);
         this.Hash = mongoose.model("Hash", hashSchema);
         this.pseudoIdLength = 6;
@@ -24,7 +22,8 @@ class UserModel extends Model {
                 name: name,
                 displayedName: displayedName + this.generatePseudoId(),
                 friends: [],
-                lastActivity: new Date()
+                lastActivity: new Date(),
+                active: false
             });
             user.save()
                 .then((user) => {
@@ -58,8 +57,11 @@ class UserModel extends Model {
 
         return new Promise((resolve, reject) => {
 
+            if(!mongoose.Types.ObjectId.isValid(id)) resolve("invalid");
+
             this.User.findById(id, (err, user) => {
                 if(err) reject(err);
+                this.user = user;
                 resolve(user);
             });
         });
@@ -97,6 +99,7 @@ class UserModel extends Model {
 
             this.User.findOne({"resetToken": `${token}`}, (err, user) => {
                 if (err) reject(err);
+                this.user = user;
                 resolve(user);
             });
         });
@@ -179,7 +182,7 @@ class UserModel extends Model {
             this.User.findOne({_id: user._id}, (err, user) => {
                 if (err || !user) reject(err);
                 
-                user.resetToken = "";
+                user.resetToken = undefined;
                 user.save((err, savedDoc) => {
                     if(err) reject(err);
                     resolve(savedDoc);
@@ -286,6 +289,16 @@ class UserModel extends Model {
                     if (err) reject(err);
                     resolve(savedDoc);
                 });
+
+    changeActivation(userId, isActive) {
+
+        return new Promise((resolve, reject) => {
+
+            this.user.active = isActive;
+            this.user.save((err, savedDoc) => {
+                if(err) reject(err);
+                resolve(savedDoc);
+
             });
         });
     }

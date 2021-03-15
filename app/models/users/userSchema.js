@@ -39,6 +39,8 @@ const userSchema = new Schema(
             type: Date
         },
 
+        active: Boolean,
+
         resetToken: String
     },
     { timestamps: true }

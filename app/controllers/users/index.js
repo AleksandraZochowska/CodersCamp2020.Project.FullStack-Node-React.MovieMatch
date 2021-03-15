@@ -11,9 +11,12 @@ module.exports.searchUser = (req, res) => { new UserController(req, res).searchU
 module.exports.getAvatar = (req, res) => { new UserController(req, res).getAvatar() };
 
 // PATCH:
-module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };
 module.exports.editPassword = (req, res) => { new UserController(req, res).editPassword() };
 module.exports.editUserData = (req, res) => { new UserController(req, res).editUserData() };
+
+// PUT:
+module.exports.resetPassword = (req, res) => { new UserController(req, res).resetPassword() };
+module.exports.confirmRegistration = (req, res) => { new UserController(req, res).confirmRegistration() };
 
 // DELETE:
 module.exports.deleteUser = (req, res) => { new UserController(req, res).deleteUser() }

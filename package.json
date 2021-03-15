@@ -36,6 +36,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.5.3",
     "mongoose": "^5.11.18",
+    "nanoid": "^3.1.21",
     "nodemailer": "^6.5.0"
   }
 }

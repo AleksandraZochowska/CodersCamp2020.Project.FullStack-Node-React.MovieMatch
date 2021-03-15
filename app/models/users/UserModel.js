@@ -259,6 +259,37 @@ class UserModel {
         });
     }
 
+    changeAvatar(userId, avatarHash) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(null);
+
+                user.avatar = avatarHash;
+                user.save((err, savedDoc) => {
+                    if (err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    deleteUserAvatar(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(null);
+
+                user.avatar = null;
+                user.save((err, savedDoc) => {
+                    if (err) reject(err);
+                    resolve(savedDoc);
+                });
+
     changeActivation(userId, isActive) {
 
         return new Promise((resolve, reject) => {
@@ -267,6 +298,7 @@ class UserModel {
             this.user.save((err, savedDoc) => {
                 if(err) reject(err);
                 resolve(savedDoc);
+
             });
         });
     }

@@ -1,21 +1,29 @@
 const UserModel = require("../../models/users/UserModel");
+const FileModel = require("../../models/files/fileModel");
 const Controller = require("../Controller");
 const Joi = require("@hapi/joi");
-const jwt = require('jsonwebtoken');
-const Mailer = require("../../helpers/Mailer")
+const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
+const fileSchema = require("../../models/files/fileSchema");
+const Mailer = require("../../helpers/Mailer");
+
 
 class UserController extends Controller {
     constructor(req, res) {
         super(req, res);
         this.users = new UserModel();
+        this.files = new FileModel();
         this.PW_MIN_LENGTH = 8;
         this.PW_MAX_LENGTH = 32;
         this.PW_REGEX = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,20})");
+        this.ALLOWED_FILETYPES = ["image/png", "image/jpg", "image/png"];
         this.mailer = new Mailer();
         this.template = {
             RESET_PASSWORD: "resetpw",
             REGISTER: "register"
         }
+
     }
 
     async login() {
@@ -35,6 +43,7 @@ class UserController extends Controller {
             // Searching the db:
             const user = await userModel.findByEmail(this.body.email);
             if(!user) return this.showError(401);
+            const usersProfile = (({ _id, email, name, displayedName }) => ({ _id, email, name, displayedName }))(user);
 
             // Check if user has been activated:
             if(!user.active) return this.showError(401, "User has not been activated");
@@ -44,7 +53,7 @@ class UserController extends Controller {
             if(!token) return this.showError(401);
             return this.success({
                 token: token,
-                user: user
+                user: usersProfile
             });
         } catch(error) {
             return this.showError(500, "Error");
@@ -170,17 +179,14 @@ class UserController extends Controller {
         } catch(error) {
 
             return this.showError(500);
-
         }
-
     }
 
     resetPassword() {
         
         // Validate reqest body:
         const resetPasswordSchema = Joi.object({
-            newPassword: Joi.string().pattern(this.PW_REGEX).required(),
-            repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+            newPassword: Joi.string().pattern(this.PW_REGEX).required()
         });
 
         const { error } = resetPasswordSchema.validate(this.body);
@@ -223,7 +229,6 @@ class UserController extends Controller {
         try {
 
             const user = await this.users.findAllUsers(this.query);
-            const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
 
             if(this.query.displayedName || this.query.email) { 
 
@@ -267,11 +272,12 @@ class UserController extends Controller {
         const resetPasswordSchema = Joi.object({
             oldPassword: Joi.string().required(),
             newPassword: Joi.string().pattern(this.PW_REGEX).required(),
-            repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
         });
 
         const { error } = resetPasswordSchema.validate(this.body);
         if(error) return this.showError(400, "Provide valid new password & repeat it");
+
+        if(this.params.id !== this.req.userId) return this.showError(401, "You are not authorized to edit data on this account");
 
         const userModel = new UserModel();
         try {
@@ -297,24 +303,23 @@ class UserController extends Controller {
 
         // Validate reqest body:
         const deleteUserSchema = Joi.object({
-            password: Joi.string().required(),
-            confirmation: Joi.string().valid('yes').required()
+            password: Joi.string().required()
         });
 
         const { error } = deleteUserSchema.validate(this.body);
-        if(error) return this.showError(400, "Please, provide password and confirm your selection");
+        if(error) return this.showError(400, "Please, provide password");
 
         const userModel = new UserModel();
-        
-        // Drop user's
         try {
+            if(this.params.id !== this.req.userId) return this.showError(401, "You are not authorized to remove this account");
+             
             // Check if password is correct:
-            const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
+            const pwCorrect = await userModel.checkHash(this.params.id, this.body.password);
             if(!pwCorrect) return this.showError(401, "Password incorrect");
 
             // Drop user & hash
-            await userModel.removeUserById(this.req.userId);
-            await userModel.removeUserHashId(this.req.userId);
+            await userModel.removeUserById(this.params.id);
+            await userModel.removeUserHashId(this.params.id);
           
             // Send success message:
             return this.success({ message: "Your account has been deleted" });
@@ -330,54 +335,48 @@ class UserController extends Controller {
         // Validation:
         const editDataSchema = Joi.alternatives().try(
             Joi.object({
-                newName: Joi.string().required()
+                name: Joi.string().required()
             }),
             Joi.object({
-                newDisplayedName: Joi.string().required()
+                displayedName: Joi.string().required()
             }),
             Joi.object({
-                password: Joi.string().required(),
-                newEmail: Joi.string().email().required()
+                email: Joi.string().email().required()
             })
         );
 
         const { error } = editDataSchema.validate(this.body);
         if(error) return this.showError(400, "Validation error - provide required data in correct format");
+
+        if(this.params.id !== this.req.userId) return this.showError(401, "You are not authorized to edit data on this account");
         
         const userModel = new UserModel();
         try {
-            
-            if(this.body.newName) {
+            if(this.body.name) {
 
                 // Change user's name
-                const changeName = await userModel.changeUserName(this.req.userId, this.body.newName);
+                const changeName = await userModel.changeUserName(this.req.userId, this.body.name);
                 if(!changeName) return this.showError(404, "User not found, cannot update name");
                 
-                return this.success({ message: `Name changed to: ${this.body.newName}` });
+                return this.success({ message: `Name changed to: ${this.body.name}` });
             }
             
-            if(this.body.newDisplayedName) {
+            if(this.body.displayedName) {
 
                 // Change user's displayed name
-                const changeDisplayedName = await userModel.changeUserDisplayedName(this.req.userId, this.body.newDisplayedName);
+                const changeDisplayedName = await userModel.changeUserDisplayedName(this.req.userId, this.body.displayedName);
                 if(!changeDisplayedName) return this.showError(404, "User not found, cannot update displayed name");
 
-                return this.success({ message: `Displayed name changed to: ${this.body.newDisplayedName}` });
+                return this.success({ message: `Displayed name changed to: ${this.body.displayedName}` });
             }
             
-            if(this.body.newEmail) {
-
-                if (!this.body.password) return this.showError(401, "Provide password to change account email");
-
-                // Check if given password is correct:
-                const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
-                if(!pwCorrect) return this.showError(401, "Password incorrect");
+            if(this.body.email) {
 
                 // Change user's email
-                const changeEmail = await userModel.changeUserEmail(this.req.userId, this.body.newEmail);
+                const changeEmail = await userModel.changeUserEmail(this.req.userId, this.body.email);
                 if(!changeEmail) return this.showError(404, "User not found, cannot update email");
 
-                return this.success({ message: `Email changed to: ${this.body.newEmail}` });
+                return this.success({ message: `Email changed to: ${this.body.email}` });
             }
 
             return this.showError(400);
@@ -385,6 +384,56 @@ class UserController extends Controller {
         } catch(error) {
 
             return this.showError(500);
+        }
+    }
+
+    async getAvatar() {
+
+        try {
+
+            const user = await this.users.findById(this.params.userId);
+            if(!user) return this.showError(404, "User not found");
+
+            const fileEntry = await this.files.findByHash(user.avatar, user._id);
+            if(!fileEntry) return this.showError(404, "Avatar not found");
+
+            const savePath = path.join(process.cwd(), process.env.FILE_STORAGE, `${user._id}`, `${user.avatar}`);
+
+            this.res.sendFile(savePath)
+
+        } catch(error) {
+            return this.showError(500, error);
+        }
+    }
+
+    async setAvatar() {
+
+        try {
+            
+            if(!this.req.files) return this.showError(400, "No file uploaded");
+        
+            const user = await this.users.findById(this.req.userId);
+            if(!user) return this.showError(404, "User not found");
+
+            const avatar = this.req.files.avatar;
+            if(!avatar || !this.ALLOWED_FILETYPES.includes(avatar.mimetype)) return this.showError(400, "Wrong file format")
+
+            const fileEntry = await this.files.addFile(avatar, user);
+            const hash = fileEntry.hash;
+
+            await this.users.changeAvatar(user._id, hash);
+
+            const savePath = path.join(process.cwd(), process.env.FILE_STORAGE, `${user._id}`);
+            if(!fs.existsSync(savePath)) fs.mkdirSync(savePath);
+            avatar.mv(path.join(savePath, hash));
+
+            console.log(user._id);
+
+            return this.success({success: "avatar added"});
+
+        } catch(error) {
+
+            return this.showError(500, error);
         }
     }
 }

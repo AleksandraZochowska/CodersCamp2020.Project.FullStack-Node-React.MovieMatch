@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const invitationSchema = require("./invitationSchema");
 
-
 class FriendModel {
 
     constructor() {

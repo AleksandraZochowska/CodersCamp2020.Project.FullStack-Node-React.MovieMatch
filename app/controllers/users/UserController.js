@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 const fileSchema = require("../../models/files/fileSchema");
-const Mailer = require("../../helpers/Mailer")
+const Mailer = require("../../helpers/Mailer");
 
 
 class UserController extends Controller {
@@ -179,9 +179,7 @@ class UserController extends Controller {
         } catch(error) {
 
             return this.showError(500);
-
         }
-
     }
 
     resetPassword() {
@@ -228,39 +226,43 @@ class UserController extends Controller {
 
     async searchUser() {
 
-        // Validation:
-        const searchUserSchema = Joi.alternatives().try(
-            Joi.object({
-                displayedName: Joi.string().required()
-            }),
-            Joi.object({
-                email: Joi.string().email().required()
-            })
-        );
-
-        const { error } = searchUserSchema.validate(this.body);
-        if(error) return this.showError(400, "Please, provide one of the two: email or displayedName");
-
-        const userModel = new UserModel();
-        
         try {
 
-            if(this.body.email) {
-                const user = await userModel.findByEmail(this.body.email);
-                if(!user) return this.showError(400, "User with the specified email does not exist!");
-                const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
-                return this.success(usersProfile);
-            }
+            const user = await this.users.findAllUsers(this.query);
 
-            if(this.body.displayedName) {
-                const user = await userModel.findByDisplayedName(this.body.displayedName);
-                if(!user) return this.showError(400, "User with the specified displayedName does not exist!");
-                const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
-                return this.success(usersProfile);
+            if(this.query.displayedName || this.query.email) { 
+
+                const qKey = this.query.displayedName ? 'displayedName' : 'email';
+                
+                const filters = this.users.usersFilter(this.query);
+                const filteredItemsList  = this.users.searchUsersByFilter(filters, this.query);
+                const filteredUsers = await this.users.findByFilter(qKey, this.query.displayedName, filteredItemsList);
+
+                const results = this.users.paginationModel(this.query.page, this.query.limit, filteredUsers);
+                const filteredUsersProfile = [];
+
+                results['results'].forEach(user => {
+                    const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+                    filteredUsersProfile.push(usersProfile);
+                })
+
+                return this.success(filteredUsersProfile);
+
+            } else {
+
+                const results = this.users.paginationModel(this.query.page, this.query.limit, user);
+                const filteredUsersProfile = [];
+
+                results['results'].forEach(user => {
+                    const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+                    filteredUsersProfile.push(usersProfile);
+                })
+
+                return this.success(filteredUsersProfile);
             }
 
         } catch(error) {
-            return this.showError(500, "Error");
+            return this.showError(500);
         }
     }
 

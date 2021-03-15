@@ -147,6 +147,37 @@ class FriendController extends Controller {
             return (`${el._id}` == `${friend._id}`);
         });
     }
+
+    async showFriends() {
+
+        try {
+
+            const user = await this.userModel.findById(this.req.userId);
+            const filters = this.userModel.usersFilter(this.query);
+            const filteredItemsList  = this.userModel.searchUsersByFilter(filters, this.query);
+             
+            if(this.query.displayedName || this.query.name) { 
+
+                const filteredFriends = user.friends.filter(friend => {
+                    const friendName = this.query.displayedName ? friend.displayedName : friend.name;
+                    return friendName.match(filteredItemsList[0]['$regex']);
+                });
+
+                const results = this.userModel.paginationModel(this.query.page, this.query.limit, filteredFriends);
+                return this.success(results);
+
+            } else {
+
+                const userFriends = user.friends;
+                const results = this.userModel.paginationModel(this.query.page, this.query.limit, userFriends);
+                return this.success(results);
+            }
+
+        } catch(error) {
+            return this.showError(500, error.message);
+        }
+
+    }
 }
 
 module.exports = FriendController;

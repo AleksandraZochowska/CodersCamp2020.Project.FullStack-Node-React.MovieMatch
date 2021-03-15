@@ -100,17 +100,17 @@ class UserController extends Controller {
                         .catch(error => {
 
                             userModel.removeUserById(user._id)
-                            return this.showError(500, error);
+                            return this.showError(500);
                         });
                 })
                 .catch(error => {
                     
-                    return this.showError(500, error);
+                    return this.showError(500);
                 });
 
         } catch(error) {
 
-            return this.showError(500, error);
+            return this.showError(500);
         }
     }
 

@@ -122,7 +122,6 @@ class FriendModel {
             });
         });
     }
-
 }
 
 module.exports = FriendModel;

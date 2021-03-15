@@ -182,7 +182,7 @@ class UserModel {
             this.User.findOne({_id: user._id}, (err, user) => {
                 if (err || !user) reject(err);
                 
-                user.resetToken = "";
+                user.resetToken = undefined;
                 user.save((err, savedDoc) => {
                     if(err) reject(err);
                     resolve(savedDoc);

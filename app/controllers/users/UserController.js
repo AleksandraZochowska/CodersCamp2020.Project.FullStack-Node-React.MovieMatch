@@ -35,6 +35,7 @@ class UserController extends Controller {
             // Searching the db:
             const user = await userModel.findByEmail(this.body.email);
             if(!user) return this.showError(401);
+            const usersProfile = (({ _id, email, name, displayedName }) => ({ _id, email, name, displayedName }))(user);
 
             // Check if user has been activated:
             if(!user.active) return this.showError(401, "User has not been activated");
@@ -44,7 +45,7 @@ class UserController extends Controller {
             if(!token) return this.showError(401);
             return this.success({
                 token: token,
-                user: user
+                user: usersProfile
             });
         } catch(error) {
             return this.showError(500, "Error");
@@ -179,8 +180,7 @@ class UserController extends Controller {
         
         // Validate reqest body:
         const resetPasswordSchema = Joi.object({
-            newPassword: Joi.string().pattern(this.PW_REGEX).required(),
-            repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+            newPassword: Joi.string().pattern(this.PW_REGEX).required()
         });
 
         const { error } = resetPasswordSchema.validate(this.body);
@@ -240,17 +240,15 @@ class UserController extends Controller {
             if(this.body.email) {
                 const user = await userModel.findByEmail(this.body.email);
                 if(!user) return this.showError(400, "User with the specified email does not exist!");
-                return this.success({
-                    user: user
-                });
+                const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+                return this.success(usersProfile);
             }
 
             if(this.body.displayedName) {
                 const user = await userModel.findByDisplayedName(this.body.displayedName);
                 if(!user) return this.showError(400, "User with the specified displayedName does not exist!");
-                return this.success({
-                    user: user
-                });
+                const usersProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(user);
+                return this.success(usersProfile);
             }
 
         } catch(error) {
@@ -264,11 +262,12 @@ class UserController extends Controller {
         const resetPasswordSchema = Joi.object({
             oldPassword: Joi.string().required(),
             newPassword: Joi.string().pattern(this.PW_REGEX).required(),
-            repeatNewPassword: Joi.string().valid(Joi.ref('newPassword')).required()
         });
 
         const { error } = resetPasswordSchema.validate(this.body);
         if(error) return this.showError(400, "Provide valid new password & repeat it");
+
+        if(this.params.id !== this.req.userId) return this.showError(401, "You are not authorized to edit data on this account");
 
         const userModel = new UserModel();
         try {
@@ -294,24 +293,23 @@ class UserController extends Controller {
 
         // Validate reqest body:
         const deleteUserSchema = Joi.object({
-            password: Joi.string().required(),
-            confirmation: Joi.string().valid('yes').required()
+            password: Joi.string().required()
         });
 
         const { error } = deleteUserSchema.validate(this.body);
-        if(error) return this.showError(400, "Please, provide password and confirm your selection");
+        if(error) return this.showError(400, "Please, provide password");
 
         const userModel = new UserModel();
-        
-        // Drop user's
         try {
+            if(this.params.id !== this.req.userId) return this.showError(401, "You are not authorized to remove this account");
+             
             // Check if password is correct:
-            const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
+            const pwCorrect = await userModel.checkHash(this.params.id, this.body.password);
             if(!pwCorrect) return this.showError(401, "Password incorrect");
 
             // Drop user & hash
-            await userModel.removeUserById(this.req.userId);
-            await userModel.removeUserHashId(this.req.userId);
+            await userModel.removeUserById(this.params.id);
+            await userModel.removeUserHashId(this.params.id);
           
             // Send success message:
             return this.success({ message: "Your account has been deleted" });
@@ -327,54 +325,48 @@ class UserController extends Controller {
         // Validation:
         const editDataSchema = Joi.alternatives().try(
             Joi.object({
-                newName: Joi.string().required()
+                name: Joi.string().required()
             }),
             Joi.object({
-                newDisplayedName: Joi.string().required()
+                displayedName: Joi.string().required()
             }),
             Joi.object({
-                password: Joi.string().required(),
-                newEmail: Joi.string().email().required()
+                email: Joi.string().email().required()
             })
         );
 
         const { error } = editDataSchema.validate(this.body);
         if(error) return this.showError(400, "Validation error - provide required data in correct format");
+
+        if(this.params.id !== this.req.userId) return this.showError(401, "You are not authorized to edit data on this account");
         
         const userModel = new UserModel();
         try {
-            
-            if(this.body.newName) {
+            if(this.body.name) {
 
                 // Change user's name
-                const changeName = await userModel.changeUserName(this.req.userId, this.body.newName);
+                const changeName = await userModel.changeUserName(this.req.userId, this.body.name);
                 if(!changeName) return this.showError(404, "User not found, cannot update name");
                 
-                return this.success({ message: `Name changed to: ${this.body.newName}` });
+                return this.success({ message: `Name changed to: ${this.body.name}` });
             }
             
-            if(this.body.newDisplayedName) {
+            if(this.body.displayedName) {
 
                 // Change user's displayed name
-                const changeDisplayedName = await userModel.changeUserDisplayedName(this.req.userId, this.body.newDisplayedName);
+                const changeDisplayedName = await userModel.changeUserDisplayedName(this.req.userId, this.body.displayedName);
                 if(!changeDisplayedName) return this.showError(404, "User not found, cannot update displayed name");
 
-                return this.success({ message: `Displayed name changed to: ${this.body.newDisplayedName}` });
+                return this.success({ message: `Displayed name changed to: ${this.body.displayedName}` });
             }
             
-            if(this.body.newEmail) {
-
-                if (!this.body.password) return this.showError(401, "Provide password to change account email");
-
-                // Check if given password is correct:
-                const pwCorrect = await userModel.checkHash(this.req.userId, this.body.password);
-                if(!pwCorrect) return this.showError(401, "Password incorrect");
+            if(this.body.email) {
 
                 // Change user's email
-                const changeEmail = await userModel.changeUserEmail(this.req.userId, this.body.newEmail);
+                const changeEmail = await userModel.changeUserEmail(this.req.userId, this.body.email);
                 if(!changeEmail) return this.showError(404, "User not found, cannot update email");
 
-                return this.success({ message: `Email changed to: ${this.body.newEmail}` });
+                return this.success({ message: `Email changed to: ${this.body.email}` });
             }
 
             return this.showError(400);

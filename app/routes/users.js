@@ -8,17 +8,17 @@ router.post("/register", usersController.register);
 router.post("/forgotpassword", usersController.forgotPassword);
 
 // GET
-router.get("/searchuser", usersController.searchUser);
+router.get("/", tokenVerification, usersController.searchUser);
 
 // PATCH:
-router.patch("/profile/edit/editpassword", tokenVerification, usersController.editPassword);
-router.patch("/profile/edit/editdata", tokenVerification, usersController.editUserData);
+router.patch("/:id/password", tokenVerification, usersController.editPassword);
+router.patch("/:id", tokenVerification, usersController.editUserData);
 
 // PUT:
 router.put("/resetpassword/:resettoken", usersController.resetPassword);
 router.put("/register/:registrationtoken", usersController.confirmRegistration);
 
 // DELETE:
-router.delete("/profile/edit/deleteuser", tokenVerification, usersController.deleteUser);
+router.delete("/:id", tokenVerification, usersController.deleteUser);
 
 module.exports = router;

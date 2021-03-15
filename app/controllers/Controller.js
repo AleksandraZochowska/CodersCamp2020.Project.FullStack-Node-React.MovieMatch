@@ -4,6 +4,8 @@ class Controller {
         this.req = req;
         this.res = res;
         this.body = req.body;
+        this.params = req.params;
+        this.query = req.query;
     }
 
     success(message) {

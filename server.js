@@ -2,6 +2,7 @@ const dotenv = require("dotenv");
 const routes = require("./app/routes");
 const mongoose = require("mongoose");
 const express = require("express");
+const fileUpload = require("express-fileupload");
 
 dotenv.config({ path: "./.env"});
 
@@ -36,6 +37,7 @@ class Server {
 
     useMiddlewares() {
         this.app.use(express.json());
+        this.app.use(fileUpload());
     }
 
     getRoutes() {

@@ -25,6 +25,10 @@ const userSchema = new Schema(
             unique: true
         },
 
+        avatar: {
+            type: String
+        },
+
         friends: [{
             _id: Schema.Types.ObjectId,
             name: String,
@@ -34,6 +38,8 @@ const userSchema = new Schema(
         lastActivity: {
             type: Date
         },
+
+        active: Boolean,
 
         resetToken: String
     },

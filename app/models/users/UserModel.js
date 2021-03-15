@@ -1,18 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Model = require("../Model");
 const userSchema = require("./userSchema");
 const hashSchema = require("./hashSchema");
 
-class UserModel extends Model {
+class UserModel {
 
     constructor() {
-        super();
         this.User = mongoose.model("User", userSchema);
         this.Hash = mongoose.model("Hash", hashSchema);
-        this.mongoURL = process.env.MONGO_URL;
-        this.mongoDB = process.env.MONGO_DB;
         this.pseudoIdLength = 6;
         this.user;
     }
@@ -26,7 +22,8 @@ class UserModel extends Model {
                 name: name,
                 displayedName: displayedName + this.generatePseudoId(),
                 friends: [],
-                lastActivity: new Date()
+                lastActivity: new Date(),
+                active: false
             });
             user.save()
                 .then((user) => {
@@ -60,13 +57,16 @@ class UserModel extends Model {
 
         return new Promise((resolve, reject) => {
 
+            if(!mongoose.Types.ObjectId.isValid(id)) resolve("invalid");
+
             this.User.findById(id, (err, user) => {
                 if(err) reject(err);
+                this.user = user;
                 resolve(user);
             });
         });
     }
-  
+    
     findByEmail(email) {
 
         return new Promise((resolve, reject) => {
@@ -93,12 +93,102 @@ class UserModel extends Model {
         });
     }
 
+     findAllUsers(email) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.find({}, (err, user) => {
+                if (err) reject(err);
+                resolve(user);
+            });
+
+        });
+    }
+
+    usersFilter(reqQuery) {
+
+        return [
+            {
+                key: 'email',
+                value: {
+                    $regex: new RegExp(reqQuery.email),
+                    $options: 'i',
+                },
+            },
+            {
+                key: 'displayedName',
+                value: {
+                    $regex: new RegExp(reqQuery.displayedName),
+                    $options: 'i',
+                },
+            },
+            {
+                key: 'name',
+                value: {
+                    $regex: new RegExp(reqQuery.name),
+                    $options: 'i',
+                },
+            }
+        ]
+    }
+
+    searchUsersByFilter(usersFilterData, reqQuery) {
+
+        const filteredData = [];
+
+        usersFilterData.forEach( (filteredItem) => {
+            if (reqQuery[filteredItem.key]) {
+                filteredData.push(filteredItem.value);
+            }
+        });
+
+        return filteredData;
+    }
+
+    findByFilter(key, reqEmail, filteredItemsList) {
+
+        return new Promise((resolve, reject) => {
+
+            if(key === 'email') {
+                this.User.find({ email: filteredItemsList[0]['$regex']}, (err, user) => {
+                    if (err) reject(err);
+                    resolve(user); 
+               });
+            }
+
+            if(key === 'displayedName') {
+                this.User.find({ displayedName: filteredItemsList[0]['$regex']}, (err, user) => {
+                    if (err) reject(err);
+                    resolve(user); 
+                });
+            }
+        });
+    }
+
+    paginationModel(qPage, qLimit, filteredList) {
+
+        const page = parseInt(qPage) >= 1 ? parseInt(qPage) : 1;
+        const limit = parseInt(qLimit);
+        const endIndex = page * limit;
+        const startIndex = (page - 1) * limit;
+        
+        const resultUsers = {};
+        const totalPages = Math.ceil(filteredList.length/limit);
+        
+        resultUsers.nextPage = (page + 1) > totalPages ? totalPages : (page + 1),
+        resultUsers.previousPage = (page - 1) < 1 ? 1 : (page - 1) > totalPages ? totalPages : (page - 1);
+
+        resultUsers.results = filteredList.slice(startIndex, endIndex);
+        return resultUsers;
+    }
+
     findByResetToken(token) {
 
         return new Promise((resolve, reject) => {
 
             this.User.findOne({"resetToken": `${token}`}, (err, user) => {
                 if (err) reject(err);
+                this.user = user;
                 resolve(user);
             });
         });
@@ -181,7 +271,7 @@ class UserModel extends Model {
             this.User.findOne({_id: user._id}, (err, user) => {
                 if (err || !user) reject(err);
                 
-                user.resetToken = "";
+                user.resetToken = undefined;
                 user.save((err, savedDoc) => {
                     if(err) reject(err);
                     resolve(savedDoc);
@@ -254,6 +344,53 @@ class UserModel extends Model {
                     if(err) reject(err);
                     resolve(savedDoc);
                 });
+            });
+        });
+    }
+
+    changeAvatar(userId, avatarHash) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(null);
+
+                user.avatar = avatarHash;
+                user.save((err, savedDoc) => {
+                    if (err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    deleteUserAvatar(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            this.User.findById(userId, (err, user) => {
+                if(err) reject(err);
+                if(!user) resolve(null);
+
+                user.avatar = null;
+                user.save((err, savedDoc) => {
+                    if (err) reject(err);
+                    resolve(savedDoc);
+                });
+            });
+        });
+    }
+
+    changeActivation(userId, isActive) {
+
+        return new Promise((resolve, reject) => {
+
+            this.user.active = isActive;
+            this.user.save((err, savedDoc) => {
+                if(err) reject(err);
+                resolve(savedDoc);
+
             });
         });
     }

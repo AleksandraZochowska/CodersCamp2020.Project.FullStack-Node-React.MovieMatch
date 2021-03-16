@@ -126,9 +126,8 @@ class FriendController extends Controller {
             if(friend === "invalid") return this.showError(400, "Provide valid friend ID");
             if(!friend) return this.showError(404, "Friend not found");
 
-            // If user searches own id, show full profile info:
-            const usersProfile = (({ _id, email, name, displayedName }) => ({ _id, email, name, displayedName }))(user);
-            if(`${friend.id}` === this.req.userId) return this.success(usersProfile);
+            // If user searches own id:
+            if(`${friend.id}` === this.req.userId) return this.showError(400);
 
             // Check if user & the person whose profile they want to see are friends:
             const alreadyFriends = await this.checkIfFriends(user, friend);
@@ -155,6 +154,9 @@ class FriendController extends Controller {
             const user = await this.userModel.findById(this.req.userId);
             const filters = this.userModel.usersFilter(this.query);
             const filteredItemsList  = this.userModel.searchUsersByFilter(filters, this.query);
+
+            const page = this.query.page || 1;
+            const limit = this.query.limit || 10;
              
             if(this.query.displayedName || this.query.name) { 
 
@@ -163,13 +165,13 @@ class FriendController extends Controller {
                     return friendName.match(filteredItemsList[0]['$regex']);
                 });
 
-                const results = this.userModel.paginationModel(this.query.page, this.query.limit, filteredFriends);
+                const results = this.userModel.paginationModel(page, limit, filteredFriends);
                 return this.success(results);
 
             } else {
 
                 const userFriends = user.friends;
-                const results = this.userModel.paginationModel(this.query.page, this.query.limit, userFriends);
+                const results = this.userModel.paginationModel(page, limit, userFriends);
                 return this.success(results);
             }
 

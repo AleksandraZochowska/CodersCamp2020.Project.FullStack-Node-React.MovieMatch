@@ -9,7 +9,7 @@ router.post("/forgotpassword", usersController.forgotPassword);
 router.post("/avatar", tokenVerification, usersController.setAvatar);
 
 // GET
-router.get("/avatar/:userId", usersController.getAvatar);
+router.get("/avatar/:userid", tokenVerification, usersController.getAvatar);
 router.get("/", tokenVerification, usersController.searchUser);
 
 // PATCH:

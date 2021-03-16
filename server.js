@@ -8,9 +8,10 @@ dotenv.config({ path: "./.env"});
 
 class Server {
     
-    constructor() {
+    constructor(dbConnectionString) {
         this.app = express();
-        this.serverPort = process.env.SERVER_PORT || 4000;
+        this.serverPort = process.env.PORT || 4000;
+        this.dbConnectionString = dbConnectionString || process.env.DB_CONNECTION_STRING;
         this.connectToDB();
         this.useMiddlewares();
         this.getRoutes();
@@ -19,18 +20,18 @@ class Server {
 
     async connectToDB() {
 
-        if(!process.env.DB_USER || !process.env.DB_PASSWD) throw new Error("DB_USER and/or DB_PASSWD not defined");
-
-        const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+        if(!this.dbConnectionString) throw new Error("Database connection string not defined");
 
         try {
-            await mongoose.connect(connectionString, {
+            console.log(this.dbConnectionString)
+            await mongoose.connect(`${this.dbConnectionString}`, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true
             });
         } catch(error) {
             console.log(error); //TODO: better error handle function
             //try to connect again as when initial connection fails, mongoose will not attempt to reconnect
+            console.log("Connection to database failed. Trying again...")
             this.connectToDB(); 
         }
     }

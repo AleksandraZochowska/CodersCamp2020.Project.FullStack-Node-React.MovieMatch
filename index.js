@@ -1,3 +1,3 @@
 const Server = require("./server");
 
-new Server();
+new Server(process.env.TEST_DB_STRING);

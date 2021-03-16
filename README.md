@@ -18,9 +18,43 @@ Awesome Movie Match is meant to be a platform for people to create movie collect
 
 Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb - Mar 2021 using Node.js.
 
-## API
+## API - endpoints
 
+### USERS
 
+| Route                                  | Method | Description                                                                                                             | Only for logged in users |
+|----------------------------------------|--------|-------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| /api/users                             | GET    | Returns users: if email or displayedName is specified in query, returns matching results - otherwise returns all users. | Yes.                     |
+| /api/users/avatar/:userid              | GET    | Returns avatar of user with given id.                                                                                   | Yes.                     |
+| /api/users/register                    | POST   | Sends email with confirmation link. Requires providing email, name, displayedName & password in request body.           | No.                      |
+| /api/users/login                       | POST   | Returns logged in user & authorization token. Requires providing email & password in request body.                      | No.                      |
+| /api/users/forgotpassword              | POST   | Sends email with reset link. Requires providing email in request body.                                                  | No.                      |
+| /api/users/avatar                      | POST   | Sets user avatar. Requires providing avatar in request body.                                                            | Yes.                     |
+| /api/users/register/:registrationtoken | PUT    | Activates user account. Requires providing a valid registrationtoken                                                    | No.                      |
+| /api/users/resetpassword/:resettoken   | PUT    | Resets user password. Requires providing a valid resettoken as param & newPassword in request body                      | No.                      |
+| /api/users/:id/password                | PATCH  | Changes user's password to new one, provided in request body.                                                           | Yes.                     |
+| /api/users/:id                         | PATCH  | Depending on provided request body, changes user's: name, or displayedName, or email.                                   | Yes.                     |
+| /api/users/:id                         | DELETE | Deletes user's account. Requires providing password in request body.                                                    | Yes.                     |
+
+### FRIENDS
+
+| Route                              | Method | Description                                                                                                                | Only for logged in users |
+|------------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| /api/friends                       | GET    | Returns friends: if name or displayedName is specified in query, returns matching results - otherwise returns all friends. | Yes.                     |
+| /api/friends/:friendid             | GET    | Returns details of a friend with given id: name, displayedName.                                                            | Yes.                     |
+| /api/friends/invite/:friendid      | POST   | Sends friend invitation to the user with given id.                                                                         | Yes.                     |
+| /api/friends/accept/:invitationid  | POST   | Accepts friend invitation wih given id.                                                                                    | Yes.                     |
+| /api/friends/decline/:invitationid | POST   | Declines friend invitation wih given id.                                                                                   | Yes.                     |
+
+### MOVIES
+
+| Route                | Method | Description                                            | Only for logged in users |
+|----------------------|--------|--------------------------------------------------------|--------------------------|
+| /api/movies          | GET    | Returns list of movies matching "title" query.         | Yes.                     |
+| /api/movies/suggest  | GET    | Returns list of movie suggestions.                     | Yes.                     |
+| /api/movies/:movieid | GET    | Returns details of movie with specified id.            | Yes.                     |
+| /api/movies/:movieid | POST   | Adds movie with specified id to user's collection.     | Yes.                     |
+| /api/movies/:movieid | DELETE | Removes movie with specified id from users collection. | Yes.                     |
 
 
 
@@ -67,7 +101,7 @@ Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb
 
 - [Anna Żak](https://github.com/AnnZak)
 
-##### Mentor:
+#### Mentor:
 
 - [Piotr Bartkowicz](https://github.com/BartkowiczPiotr)
 

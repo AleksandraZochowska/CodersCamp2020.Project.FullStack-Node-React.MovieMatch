@@ -93,6 +93,22 @@ Example of request body:
 }
 ```
 
+#### Edit user's information:
+Send PATCH request to: 
+```https://awesome-movie-match.herokuapp.com/api/users/:id```
+
+Where `:id` is a valid user's id.
+
+Example of request body:
+```
+{
+    "name": "Thad",
+    "displayedName": "Thad",
+    "email": "thad@example.com"
+}
+```
+You need to provide ONE of the above options (not more, not less).
+
 #### Forgot pasword - send email with reset token:
 Send POST request to: 
 ```https://awesome-movie-match.herokuapp.com/api/users/forgotpassword```
@@ -101,6 +117,18 @@ Example of request body:
 ```
 {
     "email": "thadeus@example.com"
+}
+```
+
+
+#### Set user's avatar:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/users/avatar```
+
+Example of request body:
+```
+{
+    "avatar": <file>
 }
 ```
 
@@ -146,6 +174,12 @@ Send GET request to:
 ```https://awesome-movie-match.herokuapp.com/api/movies```
 
 If you want to search for movie by title, provide `title` query.
+
+#### Show movie details:
+Send GET request to: 
+```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
+
+Where `:movieid` is a valid movie id (e.g. tt0903625).
 
 #### Add to collection:
 Send POST request to: 

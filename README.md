@@ -167,6 +167,27 @@ Send POST request to:
 
 Where `:invitationid` is a valid id of an invitation.
 
+#### Show friend's profile:
+Send GET request to: 
+```https://awesome-movie-match.herokuapp.com/api/friends/:friendid```
+
+Where `:friendid` is a valid friend's id.
+
+#### Search friend:
+Send GET request to: 
+```https://awesome-movie-match.herokuapp.com/api/friends```
+
+Available query options (all optional):
+```
+displayedName
+name
+limit
+page
+```
+If you provide name or displayed name, it has to be one OR the other.
+`limit` sets the number of records per page.
+`page` sets the number of returned page.
+
 ### MOVIES
 
 #### Search movie:
@@ -175,19 +196,23 @@ Send GET request to:
 
 If you want to search for movie by title, provide `title` query.
 
+#### Show movie suggestions :
+Send GET request to: 
+```https://awesome-movie-match.herokuapp.com/api/movies/suggest```
+
 #### Show movie details:
 Send GET request to: 
 ```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
 
 Where `:movieid` is a valid movie id (e.g. tt0903625).
 
-#### Add to collection:
+#### Add movie to user's collection:
 Send POST request to: 
 ```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
 
 Where `:movieid` is a valid movie id (e.g. tt0903625).
 
-#### Remove from collection:
+#### Remove movie from user's collection:
 Send DELETE request to: 
 ```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
 

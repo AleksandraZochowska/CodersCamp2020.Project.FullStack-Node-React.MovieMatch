@@ -74,6 +74,13 @@ Example of request body:
     "password": "Thadeus1*"
 }
 ```
+
+#### Confirm registration:
+Send PUT request to: 
+```https://awesome-movie-match.herokuapp.com/api/users/register/:registrationtoken```
+
+Where `:registrationtoken` is a valid registration token (received via email).
+
 #### Login user:
 Send POST request to: 
 ```https://awesome-movie-match.herokuapp.com/api/users/login```
@@ -83,6 +90,17 @@ Example of request body:
 {
     "email": "thadeus@example.com",
     "password": "Thadeus1*"
+}
+```
+
+#### Forgot pasword - send email with reset token:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/users/forgotpassword```
+
+Example of request body:
+```
+{
+    "email": "thadeus@example.com"
 }
 ```
 

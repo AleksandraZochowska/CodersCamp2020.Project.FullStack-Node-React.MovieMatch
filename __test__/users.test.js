@@ -1,27 +1,90 @@
 const supertest = require("supertest");
+// const mongoose = require('mongoose');
+const userModel = require("../app/models/users/UserModel")
 const Server = require("../server");
 
-const connectionString = process.env.TEST_DB_STRING;
-
-console.log(connectionString);
-const server = new Server(connectionString);
+const dbName = "testDB";
+const server = new Server(dbName);
 
 const request = supertest(server.app);
-describe('Our user', () => {
 
-    it("creates", async done => {
+const users = new userModel();
+const newUser = {
+    email: "tester@example.com",
+    name: "tester",
+    displayedName: "tester",
+    password: "Tester123*",
+}
 
-        // const res = await request.post("/api/users/register")
-        // .send({
-        //     email: "victor@example.com",
-        //     name: "Victor",
-        //     displayedName: "xXxMonser_SlayerxXx",
-        //     password: "Victor123*"
-        // });
 
-        const res = await request.get("/api/users");
+afterAll(done => {
+    
+    server.mongoConnection.connection.db.dropDatabase((err, result) => {
+        if(err) throw new Error(err);
+        console.log(result);
+        server.close();
+        done();
+    }); 
+})
 
-        console.log(res);
+describe('User', () => {
+
+    it("registers", async done => {
+
+        const res = await request.post("/api/users/register")
+        .send({
+            email: newUser.email,
+            name: newUser.name,
+            displayedName: newUser.displayedName,
+            password: newUser.password
+        });
+
+        expect(res.statusCode).toBe(200);
+
+        done();
+    });
+
+    it("cant register again", async done => {
+
+        const res = await request.post("/api/users/register")
+        .send({
+            email: newUser.email,
+            name: newUser.name,
+            displayedName: newUser.displayedName,
+            password: newUser.password
+        });
+
+        expect(res.statusCode).toBe(400);
+
+        done();
+    });
+
+    it("cannot log in prior to activation", async done => {
+
+        const res = await request.post("/api/users/login")
+        .send({
+            email: newUser.email,
+            password: newUser.password
+        });
+
+        expect(res.statusCode).toBe(401);
+
+        done();
+    });
+
+    it("can log in after activation is complete", async done => {
+
+        //activation is done by email, this is simple workaround:
+        const user = await users.findByEmail(newUser.email);
+        await users.changeActivation(user._id, true);
+
+        const res = await request.post("/api/users/login")
+        .send({
+            email: newUser.email,
+            password: newUser.password
+        });
+
+        expect(res.statusCode).toBe(200);
 
         done();
     });

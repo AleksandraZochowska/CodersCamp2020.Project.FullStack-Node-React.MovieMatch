@@ -64,12 +64,13 @@ Send request to:
 ```https://awesome-movie-match.herokuapp.com/api/users/register```
 
 Example of request body:
-```{
+``` {
     "email": "thadeus@example.com",
     "name": "Thadeus",
     "displayedName": "Thadeus",
     "password": "Thadeus1*"
-}```
+}
+```
 
 ## Technologies
 

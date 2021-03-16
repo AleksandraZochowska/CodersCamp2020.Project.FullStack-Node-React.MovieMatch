@@ -5,7 +5,7 @@
 ## Table of contents
 
 - [General info](#general-info)
-- [API](#api)
+- [API - endpoints](#api-endpoints)
 - [Technologies](#technologies)
 - [Project scope](#project-scope)
 - [Team](#team)
@@ -43,8 +43,8 @@ Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb
 | /api/friends                       | GET    | Returns friends: if name or displayedName is specified in query, returns matching results - otherwise returns all friends. | Yes.                     |
 | /api/friends/:friendid             | GET    | Returns details of a friend with given id: name, displayedName.                                                            | Yes.                     |
 | /api/friends/invite/:friendid      | POST   | Sends friend invitation to the user with given id.                                                                         | Yes.                     |
-| /api/friends/accept/:invitationid  | POST   | Accepts friend invitation wih given id.                                                                                    | Yes.                     |
-| /api/friends/decline/:invitationid | POST   | Declines friend invitation wih given id.                                                                                   | Yes.                     |
+| /api/friends/accept/:invitationid  | POST   | Accepts friend invitation with given id.                                                                                    | Yes.                     |
+| /api/friends/decline/:invitationid | POST   | Declines friend invitation with given id.                                                                                   | Yes.                     |
 
 ### MOVIES
 
@@ -55,9 +55,6 @@ Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb
 | /api/movies/:movieid | GET    | Returns details of movie with specified id.            | Yes.                     |
 | /api/movies/:movieid | POST   | Adds movie with specified id to user's collection.     | Yes.                     |
 | /api/movies/:movieid | DELETE | Removes movie with specified id from users collection. | Yes.                     |
-
-
-
 
 ## Technologies
 

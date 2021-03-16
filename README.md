@@ -6,6 +6,7 @@
 
 - [General info](#general-info)
 - [API - endpoints](#api-endpoints)
+- [API - usage examples](#api-usage-examples)
 - [Technologies](#technologies)
 - [Project scope](#project-scope)
 - [Team](#team)
@@ -55,6 +56,20 @@ Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb
 | /api/movies/:movieid | GET    | Returns details of movie with specified id.            | Yes.                     |
 | /api/movies/:movieid | POST   | Adds movie with specified id to user's collection.     | Yes.                     |
 | /api/movies/:movieid | DELETE | Removes movie with specified id from users collection. | Yes.                     |
+
+## API - usage examples
+
+#### Register user:
+Send request to: 
+```https://awesome-movie-match.herokuapp.com/api/users/register```
+
+Example of request body:
+```{
+    "email": "thadeus@example.com",
+    "name": "Thadeus",
+    "displayedName": "Thadeus",
+    "password": "Thadeus1*"
+}```
 
 ## Technologies
 

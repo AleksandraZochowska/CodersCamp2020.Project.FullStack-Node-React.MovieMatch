@@ -5,8 +5,8 @@
 ## Table of contents
 
 - [General info](#general-info)
-- [API - endpoints](#api-endpoints)
-- [API - usage examples](#api-usage-examples)
+- [API endpoints](#api-endpoints)
+- [API usage examples](#api-usage-examples)
 - [Technologies](#technologies)
 - [Project scope](#project-scope)
 - [Team](#team)
@@ -120,6 +120,32 @@ Send POST request to:
 ```https://awesome-movie-match.herokuapp.com/api/friends/decline/:invitationid```
 
 Where `:invitationid` is a valid id of an invitation.
+
+### MOVIES
+
+#### Search movie:
+Send GET request to: 
+```https://awesome-movie-match.herokuapp.com/api/movies```
+
+If you want to search for movie by title, provide `title` query.
+
+#### Add to collection:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
+
+Where `:movieid` is a valid movie id (e.g. tt0903625).
+
+#### Remove from collection:
+Send DELETE request to: 
+```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
+
+Where `:movieid` is a valid movie id (e.g. tt0903625).
+
+#### Toggle movie in user's collection between watched / not watched:
+Send PATCH request to: 
+```https://awesome-movie-match.herokuapp.com/api/movies/:movieid```
+
+Where `:movieid` is a valid movie id (e.g. tt0903625).
 
 
 

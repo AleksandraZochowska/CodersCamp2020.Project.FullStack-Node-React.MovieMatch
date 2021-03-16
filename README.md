@@ -59,18 +59,70 @@ Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb
 
 ## API - usage examples
 
+### USERS
+
 #### Register user:
-Send request to: 
+Send POST request to: 
 ```https://awesome-movie-match.herokuapp.com/api/users/register```
 
 Example of request body:
-``` {
+```
+{
     "email": "thadeus@example.com",
     "name": "Thadeus",
     "displayedName": "Thadeus",
     "password": "Thadeus1*"
 }
 ```
+#### Login user:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/users/login```
+
+Example of request body:
+```
+{
+    "email": "thadeus@example.com",
+    "password": "Thadeus1*"
+}
+```
+
+#### Search user:
+Send GET request to: 
+```https://awesome-movie-match.herokuapp.com/api/users```
+
+Available query options (all optional):
+```
+displayedName
+email
+limit
+page
+```
+If you provide email or displayed name, it has to be one OR the other.
+`limit` sets the number of records per page.
+`page` sets the number of returned page.
+
+### FRIENDS
+
+#### Send friend request:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/friends/invite/:friendid```
+
+Where `:friendid` is a valid id of another user.
+
+#### Accept friend request:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/friends/accept/:invitationid```
+
+Where `:invitationid` is a valid id of an invitation.
+
+#### Decline friend request:
+Send POST request to: 
+```https://awesome-movie-match.herokuapp.com/api/friends/decline/:invitationid```
+
+Where `:invitationid` is a valid id of an invitation.
+
+
+
 
 ## Technologies
 

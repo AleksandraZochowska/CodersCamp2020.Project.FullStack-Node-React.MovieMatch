@@ -8,9 +8,13 @@ dotenv.config({ path: "./.env"});
 
 class Server {
     
-    constructor() {
+    constructor(dbName) {
         this.app = express();
         this.serverPort = process.env.PORT || 4000;
+        this.dbName = dbName || process.env.DB_NAME;
+        this.mongoConnection;
+        this._server;
+
         this.connectToDB();
         this.useMiddlewares();
         this.getRoutes();
@@ -19,19 +23,16 @@ class Server {
 
     async connectToDB() {
 
-        if(!process.env.DB_USER || !process.env.DB_PASSWD) throw new Error("DB_USER and/or DB_PASSWD not defined");
-
-        const connectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+        const dbConnectionString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWD}@awesomedb.lli4m.mongodb.net/${this.dbName}?retryWrites=true&w=majority`;
 
         try {
-            await mongoose.connect(connectionString, {
+            this.mongoConnection = await mongoose.connect(dbConnectionString, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true
             });
         } catch(error) {
-            console.log(error); //TODO: better error handle function
-            //try to connect again as when initial connection fails, mongoose will not attempt to reconnect
-            this.connectToDB(); 
+            console.log(error);
+            console.log("Connection to database failed. Try again...");
         }
     }
 
@@ -45,9 +46,14 @@ class Server {
     }
 
     start() {
-        this.app.listen(this.serverPort, () => {
+        this._server = this.app.listen(this.serverPort, () => {
             console.log("MovieMatch listens on port " + this.serverPort);
         });
+    }
+
+    close() {
+        this.mongoConnection.connection.close();
+        this._server.close();
     }
 }
 

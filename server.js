@@ -3,11 +3,12 @@ const routes = require("./app/routes");
 const mongoose = require("mongoose");
 const express = require("express");
 const fileUpload = require("express-fileupload");
+const cors = require('cors')
 
-dotenv.config({ path: "./.env"});
+dotenv.config({ path: "./.env" });
 
 class Server {
-    
+
     constructor(dbName) {
         this.app = express();
         this.serverPort = process.env.PORT || 4000;
@@ -30,7 +31,7 @@ class Server {
                 useNewUrlParser: true,
                 useUnifiedTopology: true
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error);
             console.log("Connection to database failed. Try again...");
         }
@@ -39,6 +40,7 @@ class Server {
     useMiddlewares() {
         this.app.use(express.json());
         this.app.use(fileUpload());
+        this.app.use(cors());
     }
 
     getRoutes() {

@@ -6,6 +6,7 @@ const tokenVerification = require("../middlewares/tokenVerification");
 router.get("/", tokenVerification, moviesController.searchMovies);
 router.get("/suggest", tokenVerification, moviesController.showSuggestions);
 router.get("/:movieid", tokenVerification, moviesController.showMovieDetails);
+router.get("/collection/:userid", tokenVerification, moviesController.showCollection);
 
 // POST:
 router.post("/:movieid", tokenVerification, moviesController.addMovieToLiked);

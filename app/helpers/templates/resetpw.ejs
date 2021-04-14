@@ -25,13 +25,13 @@
       <td style="background-color:#FAFAFA;">
         <p>To reset the password, click on the link below:</p>
         <p>
-          <a href="<%=process.env.FRONT%>/users/reset-password/<%= token %>" style="background: #4B1B35;max-width: 600px; text-decoration: none; padding: 10px 25px; color: #FAFAFA; border-radius: 10px; display:inline-block;font-weight:bold;">
+          <a href="<%=process.env.FRONT%>/reset-password/<%= token %>" style="background: #4B1B35;max-width: 600px; text-decoration: none; padding: 10px 25px; color: #FAFAFA; border-radius: 10px; display:inline-block;font-weight:bold;">
             Reset password
           </a>
         </p>
         <p>... or copy the link below to your browser:</p>
         <p style="padding-left:20%;padding-right:20%; word-break: break-all; font-size:0.95rem;font-style:italic;">
-          <%=process.env.FRONT%>/users/resetpassword/<%= token %>
+          <%=process.env.FRONT%>/reset-password/<%= token %>
         </p>
       </td>
     </tr>

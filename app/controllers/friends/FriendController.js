@@ -131,7 +131,7 @@ class FriendController extends Controller {
 
             // Check if user & the person whose profile they want to see are friends:
             const alreadyFriends = await this.checkIfFriends(user, friend);
-            if(!alreadyFriends) return this.showError(401, "You cannot see profile, you are not friends with this person.");
+            if(!alreadyFriends && `${friend.id}` !== this.req.userId) return this.showError(401, "You cannot see profile, you are not friends with this person.");
 
             const friendsProfile = (({ _id, name, displayedName }) => ({ _id, name, displayedName }))(friend);
             return this.success(friendsProfile);

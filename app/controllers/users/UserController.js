@@ -227,6 +227,14 @@ class UserController extends Controller {
     async searchUser() {
 
         try {
+            //return user data from token if no params:
+            if(!this.query.displayedName && !this.query.email) {
+                const user = await this.users.findById(this.req.userId);
+                if(!user) return this.showError(400);
+                
+                const usersProfile = (({ _id, email, name, displayedName }) => ({ _id, email, name, displayedName }))(user);
+                return this.success(usersProfile);
+            }
 
             const user = await this.users.findAllUsers(this.query);
             const page = this.query.page || 1;

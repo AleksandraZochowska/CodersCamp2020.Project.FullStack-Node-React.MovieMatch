@@ -127,7 +127,7 @@ class FriendController extends Controller {
             if(!friend) return this.showError(404, "Friend not found");
 
             // If user searches own id:
-            if(`${friend.id}` === this.req.userId) return this.showError(400);
+            // if(`${friend.id}` === this.req.userId) return this.showError(400);
 
             // Check if user & the person whose profile they want to see are friends:
             const alreadyFriends = await this.checkIfFriends(user, friend);

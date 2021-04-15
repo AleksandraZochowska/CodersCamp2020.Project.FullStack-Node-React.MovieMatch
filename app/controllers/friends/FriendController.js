@@ -180,6 +180,18 @@ class FriendController extends Controller {
         }
 
     }
+
+    async showInvites() {
+        
+        try {
+            // Find invitation:
+            const invitations = await this.friendModel.getActiveUserInvites(this.req.userId);
+            return this.success(invitations);
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
 }
 
 module.exports = FriendController;

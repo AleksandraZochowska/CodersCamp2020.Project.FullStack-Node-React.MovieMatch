@@ -46,6 +46,7 @@ Project was created during [CodersCamp Course](https://coderscamp.edu.pl) in Feb
 | /api/friends/invite/:friendid      | POST   | Sends friend invitation to the user with given id.                                                                         | Yes.                     |
 | /api/friends/accept/:invitationid  | POST   | Accepts friend invitation with given id.                                                                                    | Yes.                     |
 | /api/friends/decline/:invitationid | POST   | Declines friend invitation with given id.                                                                                   | Yes.                     |
+| /api/friends/invitations           | GET    | Shows active invitations of user whose id is provided via token.                                                            | Yes.                     |
 
 ### MOVIES
 

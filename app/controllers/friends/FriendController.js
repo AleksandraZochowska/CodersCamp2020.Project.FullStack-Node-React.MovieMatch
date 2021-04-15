@@ -180,6 +180,26 @@ class FriendController extends Controller {
         }
 
     }
+
+    async showInvites() {
+        
+        try {
+            // Find invitation:
+            const userId = `${this.req.userId}`
+
+            const invitations = await this.friendModel.getActiveUserInvites(userId);
+
+            const sentRaw = invitations.filter(invitation => `${invitation.sender._id}` === userId);
+            const receivedRaw = invitations.filter(invitation => `${invitation.receiver._id}` === userId);
+
+            const sent = sentRaw.map(invitation => {return {_id: invitation._id, receiver: invitation.receiver}});
+            const received = receivedRaw.map( ({_id, sender}) => {return {_id, sender}});
+            return this.success({sent, received});
+
+        } catch(error) {
+            return this.showError(500);
+        }
+    }
 }
 
 module.exports = FriendController;

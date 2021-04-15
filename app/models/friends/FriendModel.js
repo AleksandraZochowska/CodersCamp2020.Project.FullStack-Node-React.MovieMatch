@@ -54,6 +54,19 @@ class FriendModel {
         });
     }
 
+    getActiveUserInvites(userId) {
+
+        return new Promise((resolve, reject) => {
+
+            const userIsSenderOrReceiverQuery = {$or: [{"sender._id": userId}, {"receiver._id": userId}]}
+
+            this.Invitation.find({$and: [{resolved: false}, userIsSenderOrReceiverQuery]}, (error, invitations) => {
+                if(error) reject(error);
+                resolve(invitations);
+            });
+        });
+    }
+
     findInvitationById(id) {
 
         return new Promise((resolve, reject) => {
